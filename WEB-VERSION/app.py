@@ -18,6 +18,18 @@ app = Flask(__name__)
 CORS(app)
 
 # ---------------- THÊM GHI CHÚ (WEB FORM) ----------------
+# @app.route("/api/notes", methods=["GET"])
+# def api_get_notes():
+#     user_id = request.args.get("user_id")  # ví dụ: /api/notes?user_id=5
+
+#     if not user_id:
+#         return jsonify({"error": "Missing user_id"}), 400
+
+#     notes = get_articles_by_user(user_id)
+
+#     return jsonify({
+#         "notes": notes
+#     }), 200
 @app.route("/notes/new", methods=["GET", "POST"])
 def add():
     if request.method == "POST":
@@ -87,6 +99,9 @@ def khac():
 
 
 # ---- API ghi chú của user dựa trên session (dùng cho web trước) ----
+
+
+
 @app.route("/api/my_note", methods=["GET"])
 def api_my_note():
     if "user_id" not in session:
@@ -201,5 +216,51 @@ def api_delete_article_mobile(code):
     return jsonify({"message": "Đã xóa"}), 200
 
 
+@app.route("/api/home", methods=["GET"])
+def api_home():
+    articles = get_all_articles()
+    counts = count_articles_by_type()
+    return jsonify({"articles": articles, "counts": counts}), 200
+
+
+@app.route("/api/khac")
+def khac_api():
+    articles = get_articles_by_type("khac")
+    counts = count_articles_by_type()
+    return jsonify({
+        "articles": articles,
+        "counts": counts
+    })
+
+
+@app.route("/api/canhan")
+def canhan_api():
+    articles = get_articles_by_type("canhan")
+    counts = count_articles_by_type()
+    return jsonify({
+        "articles": articles,
+        "counts": counts
+    })
+
+@app.route("/api/congviec")
+def congviec_api():
+    articles = get_articles_by_type("congviec")
+    counts = count_articles_by_type()
+    return jsonify({
+        "articles": articles,
+        "counts": counts
+    })
+
+
+@app.route("/api/hoctap")
+def hoctap_api():
+    articles = get_articles_by_type("hoctap")
+    counts = count_articles_by_type()
+    return jsonify({
+        "articles": articles,
+        "counts": counts
+    })
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)  # port 5000 để khớp với app

@@ -28,14 +28,12 @@ const CongviecScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   // ================== THAY ĐỔI ĐỊA CHỈ NÀY ==================
-  // const API_URL = 'http://10.0.2.2:5000';     // Android Emulator
-  // const API_URL = 'http://localhost:5000';   // iOS Simulator
-  const API_URL = 'http://192.168.1.182:5000'; // Điện thoại thật (thay IP máy tính)
+  const API_URL = 'http://127.0.0.1:5000';
 
   const fetchCongviecNotes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/articles?type=congviec`);
+      const response = await fetch(`${API_URL}/api/congviec`);
 
       if (!response.ok) {
         throw new Error('Lỗi server');
@@ -83,7 +81,7 @@ const CongviecScreen: React.FC = () => {
         <View style={styles.headerLeft}>
           <Text style={styles.logo}>NoteHub</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push('/add_note')}
         >

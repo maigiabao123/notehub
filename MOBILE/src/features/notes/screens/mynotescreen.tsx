@@ -12,10 +12,7 @@ import {
 } from "react-native";
 import axios from "axios";
 
-// ĐỔI cho đúng IP server Flask
-const BASE_URL = "http://10.0.2.2:5000"; // Android emulator
-// iOS simulator: "http://localhost:5000"
-// Thiết bị thật: "http://<IP-máy-tính>:5000"
+const API_URL = 'http://127.0.0.1:5000';
 
 // Kiểu note giống JSON Flask trả ra
 export interface Note {
@@ -34,7 +31,7 @@ const MyNoteScreen: React.FC = () => {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const res = await axios.get<Note[]>(`${BASE_URL}/notes`);
+      const res = await axios.get<Note[]>(`${API_URL}/notes`);
       setNotes(res.data);
     } catch (error: any) {
       console.log("Lỗi load notes:", error.message);
