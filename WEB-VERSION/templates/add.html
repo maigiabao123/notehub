@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>Thêm ghi chú mới</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f5f7fb;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+      .notehub-logo {
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #1e5cf0;
+      }
+      .page-title {
+        font-weight: 700;
+      }
+      .btn-primary {
+        background-color: #1e5cf0;
+        border-color: #1e5cf0;
+      }
+      .btn-primary:hover {
+        background-color: #1749c4;
+        border-color: #1749c4;
+      }
+      .card-shadow {
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top bar -->
+    <nav class="navbar navbar-light bg-white border-bottom px-4">
+      <div class="d-flex align-items-center">
+        <span class="notehub-logo">
+          <a href="{{ url_for('home') }}" style="text-decoration: none"
+            >NoteHub</a
+          >
+        </span>
+      </div>
+    </nav>
+
+    <div class="container my-5">
+      <!-- Tiêu đề trang -->
+      <div class="text-center mb-4">
+        <h2 class="page-title mb-2">Thêm ghi chú mới</h2>
+        <p class="text-muted mb-0">
+          Ghi lại ý tưởng, công việc hoặc bất cứ điều gì bạn muốn lưu lại.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <div class="card card-shadow mx-auto" style="max-width: 900px">
+        <div class="card-body p-4 p-md-5">
+          <form method="post">
+
+            <!-- Tiêu đề -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                Tiêu đề <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                name="title"
+                class="form-control"
+                placeholder="Nhập tiêu đề ghi chú..."
+                maxlength="200"
+                required
+              />
+              <div class="d-flex justify-content-end small text-muted mt-1">
+                0/200
+              </div>
+            </div>
+
+            <!-- Nội dung -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                Nội dung <span class="text-danger">*</span>
+              </label>
+
+              <!-- Thanh công cụ giả -->
+              <div
+                class="border rounded-top bg-light px-3 py-2 d-flex align-items-center gap-3"
+              >
+                <select class="form-select form-select-sm w-auto">
+                  <option>Đoạn văn</option>
+                  <option>Tiêu đề</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-light fw-semibold">
+                  B
+                </button>
+                <button type="button" class="btn btn-sm btn-light fst-italic">
+                  I
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light text-decoration-underline"
+                >
+                  U
+                </button>
+                <button type="button" class="btn btn-sm btn-light">S</button>
+                <button type="button" class="btn btn-sm btn-light">•</button>
+                <button type="button" class="btn btn-sm btn-light">1.</button>
+                <button type="button" class="btn btn-sm btn-light">“”</button>
+                <button type="button" class="btn btn-sm btn-light">🔗</button>
+                <button type="button" class="btn btn-sm btn-light">🖼️</button>
+                <button type="button" class="btn btn-sm btn-light">↶</button>
+                <button type="button" class="btn btn-sm btn-light">↷</button>
+              </div>
+
+              <textarea
+                name="content"
+                rows="8"
+                class="form-control rounded-top-0"
+                placeholder="Viết nội dung ghi chú của bạn tại đây..."
+                required
+              ></textarea>
+              <div class="d-flex justify-content-end small text-muted mt-1">
+                0 từ
+              </div>
+            </div>
+
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                Loại ghi chú (type_article)
+              </label>
+              <select name="type_article" class="form-select">
+                <option value="hoctap">🎓 Học tập</option>
+                <option value="congviec">💼 Công việc</option>
+                <option value="canhan">👤 Cá nhân</option>
+                <option value="khac">⋯ Khác</option>
+              </select>
+              <div class="small text-muted mt-1">
+                Chọn danh mục để hệ thống tự phân loại vào Học tập / Công việc /
+                Cá nhân / Khác.
+              </div>
+            </div>
+
+            <!-- Nút -->
+            <div class="d-flex gap-3">
+              <button type="submit" class="btn btn-primary">Lưu ghi chú</button>
+              <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">
+                Hủy bỏ
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
