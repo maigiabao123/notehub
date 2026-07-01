@@ -12,17 +12,14 @@ def get_db_connection():
 # ================== THÊM PHẦN USER (MỚI) ==================
 
 def create_user(email, username, password, gender):
-    """
-    Tạo user mới.
-    Bảng users: user_id (PK, AUTO_INCREMENT), email, username, password_hash, gender
-    """
+
     conn = get_db_connection()
     cur = conn.cursor()
     sql = """
-        INSERT INTO users (email, username, password_hash, gender)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO users (email, username, password, gender, role)
+        VALUES (%s, %s, %s, %s, %s)
     """
-    cur.execute(sql, (email, username, generate_password_hash(password), gender))
+    cur.execute(sql, (email, username, generate_password_hash(password), gender, "user"))
     conn.commit()
     user_id = cur.lastrowid
     cur.close()
@@ -38,6 +35,20 @@ def get_user_by_username(username):
     cur = conn.cursor(dictionary=True)
     sql = "SELECT * FROM users WHERE username = %s"
     cur.execute(sql, (username,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return row
+
+
+def get_user_by_id(user_id):
+    """
+    Lấy user theo user_id, trả dict hoặc None.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    sql = "SELECT * FROM users WHERE user_id = %s"
+    cur.execute(sql, (user_id,))
     row = cur.fetchone()
     cur.close()
     conn.close()

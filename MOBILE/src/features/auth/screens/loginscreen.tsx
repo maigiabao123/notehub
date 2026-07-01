@@ -1,4 +1,4 @@
-// LoginScreen.tsx
+// src/features/auth/screens/LoginScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -7,15 +7,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  KeyboardAvoidingView,
   ScrollView,
+  KeyboardAvoidingView,
   Platform,
   Alert,
 } from "react-native";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
-const BASE_URL = "http://10.0.2.2:5000"; // đổi theo IP backend
+const BASE_URL = "http://localhost:5000"; // web; emulator thì 10.0.2.2
 
 const LoginScreen: React.FC = () => {
   const router = useRouter();
@@ -24,7 +25,7 @@ const LoginScreen: React.FC = () => {
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin!");
+      Alert.alert("Thông báo", "Vui lòng nhập tên đăng nhập và mật khẩu");
       return;
     }
 
@@ -34,16 +35,12 @@ const LoginScreen: React.FC = () => {
         password,
       });
 
-      const user = res.data.user;
-      // TODO: lưu user.user_id vào AsyncStorage / context để dùng gọi API ghi chú
-      // await AsyncStorage.setItem("user_id", String(user.user_id));
+      const { token, user } = res.data;
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
 
-      Alert.alert("Thành công", "Đăng nhập thành công!", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/"), // /home = MyNoteScreen
-        },
-      ]);
+
+      router.replace("/");   
     } catch (error: any) {
       const msg =
         error?.response?.data?.message ||
@@ -55,12 +52,24 @@ const LoginScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.content}>
-            <Text style={styles.title}>Đăng nhập</Text>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.logo}>NoteHub</Text>
+
+          <View style={styles.hero}>
+            <Text style={styles.heroTitle}>
+              Chào mừng bạn trở lại với{" "}
+              <Text style={styles.heroHighlight}>NoteHub!</Text>
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              Đăng nhập để tiếp tục ghi chú và quản lý công việc của bạn.
+            </Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.formTitle}>Đăng nhập</Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Tên đăng nhập</Text>
@@ -77,21 +86,21 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.label}>Mật khẩu</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Mật khẩu"
+                placeholder="Nhập mật khẩu"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
               />
             </View>
 
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.loginButtonText}>Đăng nhập</Text>
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin}>
+              <Text style={styles.primaryText}>Đăng nhập</Text>
             </TouchableOpacity>
 
-            <View style={styles.row}>
-              <Text style={styles.text}>Chưa có tài khoản? </Text>
+            <View style={styles.bottomRow}>
+              <Text style={styles.bottomText}>Chưa có tài khoản? </Text>
               <TouchableOpacity onPress={() => router.push("/signup")}>
-                <Text style={styles.link}>Đăng ký ngay</Text>
+                <Text style={styles.bottomLink}>Đăng ký ngay</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -101,33 +110,42 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-export default LoginScreen;
-
+// phần styles giữ như bạn đã có
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
-  keyboardAvoid: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 20 },
-  content: { paddingVertical: 30 },
-  title: { fontSize: 24, fontWeight: "700", marginBottom: 20 },
-  inputGroup: { marginBottom: 16 },
-  label: { marginBottom: 4, fontWeight: "500" },
+  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  scroll: { padding: 16 },
+  logo: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  hero: { marginBottom: 16 },
+  heroTitle: { fontSize: 20, fontWeight: "bold" },
+  heroHighlight: { color: "#ff5a5f" },
+  heroSubtitle: { marginTop: 4, color: "#666" },
+  card: { backgroundColor: "#fff", borderRadius: 8, padding: 16 },
+  formTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
+  inputGroup: { marginBottom: 12 },
+  label: { marginBottom: 4 },
   input: {
     borderWidth: 1,
-    borderColor: "#ced4da",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
+    borderColor: "#ccc",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
-  loginButton: {
-    backgroundColor: "#1976d2",
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 10,
+  primaryBtn: {
+    marginTop: 8,
+    backgroundColor: "#007AFF",
+    paddingVertical: 10,
+    borderRadius: 6,
     alignItems: "center",
   },
-  loginButtonText: { color: "#fff", fontWeight: "600" },
-  row: { flexDirection: "row", marginTop: 16 },
-  text: { color: "#495057" },
-  link: { color: "#1976d2", fontWeight: "600" },
+  primaryText: { color: "#fff", fontWeight: "bold" },
+  bottomRow: { flexDirection: "row", marginTop: 12, justifyContent: "center" },
+  bottomText: { color: "#555" },
+  bottomLink: { color: "#007AFF", fontWeight: "bold" },
 });
+
+export default LoginScreen;
