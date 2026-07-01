@@ -13,6 +13,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const noteTypes = [
   { id: '1', label: 'Học tập', icon: '🎓' },
@@ -28,18 +29,94 @@ const AddScreen: React.FC = () => {
   const [selectedType, setSelectedType] = useState(noteTypes[0]);
   const [showTypeModal, setShowTypeModal] = useState(false);
 
-  const handleSave = () => {
-    if (!title.trim() || !content.trim()) {
-      alert('Vui lòng nhập tiêu đề và nội dung!');
+const handleSave = async () => {
+  if (!title.trim() || !content.trim()) {
+    alert('Vui lòng nhập tiêu đề và nội dung!');
+    return;
+  }
+
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      alert('Bạn chưa đăng nhập');
       return;
     }
-    console.log({
-      title,
-      content,
-      type: selectedType.label,
+
+    // map label → type_article đúng với backend
+    let type_article = 'khac';
+    switch (selectedType.label) {
+      case 'Học tập':
+        type_article = 'hoctap';
+        break;
+      case 'Công việc':
+        type_article = 'congviec';
+        break;
+      case 'Cá nhân':
+        type_article = 'canhan';
+        break;
+      default:
+        type_article = 'khac';
+    }
+
+    const res = await fetch('http://localhost:5000/api/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,      // gửi token
+      },
+      body: JSON.stringify({
+        code: Date.now().toString(),           // hoặc mã bạn tự sinh
+        title,
+        content,
+        type_article,
+      }),
     });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || data.message || 'Đăng bài thất bại');
+      return;
+    }
+
+    alert('Đăng bài thành công');
     router.back();
-  };
+  } catch (err) {
+    console.error(err);
+    alert('Có lỗi mạng, vui lòng thử lại');
+  }
+};
+    const res = await fetch('http://<IP_BACKEND>:5000/api/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // nếu dùng session cookie cần cho phép gửi cookie:
+        // 'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        code: Date.now().toString(),      // hoặc mã bạn tự tạo
+        title,
+        content,
+        type_article,
+      }),
+      // nếu cần cookie session:
+      // credentials: 'include',
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || 'Lưu ghi chú thất bại');
+      return;
+    }
+
+    alert('Đăng bài thành công');
+    router.back();
+  } catch (err) {
+    console.error(err);
+    alert('Có lỗi mạng, vui lòng thử lại');
+  }
+};
 
   const selectType = (type: typeof selectedType) => {
     setSelectedType(type);

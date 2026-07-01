@@ -4,7 +4,6 @@ from werkzeug.security import check_password_hash
 import jwt                     # >>> THÊM
 import datetime                # >>> THÊM
 from functools import wraps    # >>> THÊM
-
 from db import (
     create_user,
     get_user_by_username,
@@ -123,6 +122,7 @@ def api_my_note():
 
 # ---- API thêm bài ----
 @app.route("/api/notes", methods=["POST"])
+@token_required
 def api_add_note():
     """
     Body JSON:
@@ -133,16 +133,16 @@ def api_add_note():
       "type_article": "hoctap" | "congviec" | "canhan" | "khac"
     }
     """
-    if "user_id" not in session:
-        return jsonify({"error": "Bạn cần đăng nhập để đăng bài"}), 401
     data = request.get_json() or {}
     code = data.get("code")
     title = data.get("title")
     content = data.get("content")
     note_type = data.get("type_article")
-    user_id = session["user_id"]
+    user_id = request.user_id        # lấy từ token
+
     if not all([code, title, content, note_type]):
         return jsonify({"error": "Thiếu dữ liệu"}), 400
+
     insert_article(code, title, content, note_type, user_id)
     return jsonify({"message": "Đăng bài thành công"}), 201
 
