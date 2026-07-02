@@ -59,20 +59,21 @@ def get_user_by_id(user_id):
 
 # ---------- ARTICLE / BÀI VIẾT ----------
 
-def insert_article(code, title, content, type_article, user_id):
+def insert_article(title, content, type_article, user_id):
     """
-    Thêm bài viết mới, gắn với user_id của người đang đăng nhập.
+    Thêm bài viết mới, để MySQL tự tăng code (INT AUTO_INCREMENT).
     """
     conn = get_db_connection()
     cur = conn.cursor()
     sql = """
-        INSERT INTO article (code, title, content, time, type_article, luot_thich, comment, user_id)
-        VALUES (%s, %s, %s, NOW(), %s, 0, 0, %s)
+        INSERT INTO article (title, content, time, type_article, luot_thich, user_id)
+        VALUES (%s, %s, NOW(), %s, 0, %s)
     """
-    cur.execute(sql, (code, title, content, type_article, user_id))
+    cur.execute(sql, (title, content, type_article, user_id))
     conn.commit()
     cur.close()
     conn.close()
+
 
 def get_all_articles():
     """

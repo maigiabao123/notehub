@@ -124,26 +124,16 @@ def api_my_note():
 @app.route("/api/notes", methods=["POST"])
 @token_required
 def api_add_note():
-    """
-    Body JSON:
-    {
-      "code": "...",
-      "title": "...",
-      "content": "...",
-      "type_article": "hoctap" | "congviec" | "canhan" | "khac"
-    }
-    """
     data = request.get_json() or {}
-    code = data.get("code")
     title = data.get("title")
     content = data.get("content")
     note_type = data.get("type_article")
-    user_id = request.user_id        # lấy từ token
+    user_id = request.user_id
 
-    if not all([code, title, content, note_type]):
+    if not all([title, content, note_type]):
         return jsonify({"error": "Thiếu dữ liệu"}), 400
 
-    insert_article(code, title, content, note_type, user_id)
+    insert_article(title, content, note_type, user_id)
     return jsonify({"message": "Đăng bài thành công"}), 201
 
 # ================== CÁC API MỚI CHO MOBILE ==================

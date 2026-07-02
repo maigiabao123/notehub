@@ -15,7 +15,13 @@ import {
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const noteTypes = [
+type NoteType = {
+  id: string;
+  label: string;
+  icon: string;
+};
+
+const noteTypes: NoteType[] = [
   { id: '1', label: 'Học tập', icon: '🎓' },
   { id: '2', label: 'Công việc', icon: '💼' },
   { id: '3', label: 'Cá nhân', icon: '👤' },
@@ -26,99 +32,73 @@ const AddScreen: React.FC = () => {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedType, setSelectedType] = useState(noteTypes[0]);
+  const [selectedType, setSelectedType] = useState<NoteType>(noteTypes[0]);
   const [showTypeModal, setShowTypeModal] = useState(false);
 
-const handleSave = async () => {
-  if (!title.trim() || !content.trim()) {
-    alert('Vui lòng nhập tiêu đề và nội dung!');
-    return;
-  }
-
-  try {
-    const token = await AsyncStorage.getItem('token');
-    if (!token) {
-      alert('Bạn chưa đăng nhập');
+  const handleSave = async () => {
+    if (!title.trim() || !content.trim()) {
+      alert('Vui lòng nhập tiêu đề và nội dung!');
       return;
     }
 
-    // map label → type_article đúng với backend
-    let type_article = 'khac';
-    switch (selectedType.label) {
-      case 'Học tập':
-        type_article = 'hoctap';
-        break;
-      case 'Công việc':
-        type_article = 'congviec';
-        break;
-      case 'Cá nhân':
-        type_article = 'canhan';
-        break;
-      default:
-        type_article = 'khac';
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        alert('Bạn chưa đăng nhập');
+        return;
+      }
+
+      // map label -> type_article để khớp backend
+      let type_article = 'khac';
+      switch (selectedType.label) {
+        case 'Học tập':
+          type_article = 'hoctap';
+          break;
+        case 'Công việc':
+          type_article = 'congviec';
+          break;
+        case 'Cá nhân':
+          type_article = 'canhan';
+          break;
+        default:
+          type_article = 'khac';
+      }
+
+      // Lưu ý: nếu chạy trên Android emulator dùng 10.0.2.2 thay cho localhost
+      const API_URL =
+        Platform.OS === 'android'
+          ? 'http://10.0.2.2:5000/api/notes'
+          : 'http://localhost:5000/api/notes';
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // để @token_required đọc được
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          type_article,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || data.message || 'Đăng bài thất bại');
+        return;
+      }
+
+      alert('Đăng bài thành công');
+      router.back();
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi mạng, vui lòng thử lại');
     }
+  };
 
-    const res = await fetch('http://localhost:5000/api/notes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,      // gửi token
-      },
-      body: JSON.stringify({
-        code: Date.now().toString(),           // hoặc mã bạn tự sinh
-        title,
-        content,
-        type_article,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || data.message || 'Đăng bài thất bại');
-      return;
-    }
-
-    alert('Đăng bài thành công');
-    router.back();
-  } catch (err) {
-    console.error(err);
-    alert('Có lỗi mạng, vui lòng thử lại');
-  }
-};
-    const res = await fetch('http://<IP_BACKEND>:5000/api/notes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // nếu dùng session cookie cần cho phép gửi cookie:
-        // 'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        code: Date.now().toString(),      // hoặc mã bạn tự tạo
-        title,
-        content,
-        type_article,
-      }),
-      // nếu cần cookie session:
-      // credentials: 'include',
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || 'Lưu ghi chú thất bại');
-      return;
-    }
-
-    alert('Đăng bài thành công');
-    router.back();
-  } catch (err) {
-    console.error(err);
-    alert('Có lỗi mạng, vui lòng thử lại');
-  }
-};
-
-  const selectType = (type: typeof selectedType) => {
+  const selectType = (type: NoteType) => {
     setSelectedType(type);
     setShowTypeModal(false);
   };
@@ -160,16 +140,20 @@ const handleSave = async () => {
                 <Text style={styles.label}>
                   Nội dung <Text style={styles.required}>*</Text>
                 </Text>
-
                 <View style={styles.toolbar}>
                   <TouchableOpacity style={styles.toolButton}>
                     <Text style={styles.toolText}>Đoạn văn</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.toolButton}><Text style={styles.toolText}>B</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.toolButton}><Text style={styles.toolText}>I</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.toolButton}><Text style={styles.toolText}>U</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.toolButton}>
+                    <Text style={styles.toolText}>B</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.toolButton}>
+                    <Text style={styles.toolText}>I</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.toolButton}>
+                    <Text style={styles.toolText}>U</Text>
+                  </TouchableOpacity>
                 </View>
-
                 <TextInput
                   style={styles.contentInput}
                   placeholder="Viết nội dung ghi chú của bạn tại đây..."
@@ -199,7 +183,6 @@ const handleSave = async () => {
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                   <Text style={styles.saveButtonText}>Lưu ghi chú</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   style={styles.cancelButton}
                   onPress={() => router.back()}
@@ -222,7 +205,6 @@ const handleSave = async () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Chọn loại ghi chú</Text>
-            
             <FlatList
               data={noteTypes}
               keyExtractor={(item) => item.id}
@@ -239,7 +221,6 @@ const handleSave = async () => {
                 </TouchableOpacity>
               )}
             />
-
             <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => setShowTypeModal(false)}
@@ -258,15 +239,22 @@ const styles = StyleSheet.create({
   keyboardAvoid: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingHorizontal: 20 },
   content: { paddingVertical: 20 },
-
-  headerTitle: { fontSize: 26, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  headerSubtitle: { fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 30 },
-
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
   form: { width: '100%' },
   inputGroup: { marginBottom: 24 },
   label: { fontSize: 16, fontWeight: '600', color: '#1e2937', marginBottom: 8 },
   required: { color: '#ef4444' },
-
   titleInput: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
@@ -275,8 +263,12 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 17,
   },
-  charCount: { textAlign: 'right', color: '#94a3b8', fontSize: 13, marginTop: 4 },
-
+  charCount: {
+    textAlign: 'right',
+    color: '#94a3b8',
+    fontSize: 13,
+    marginTop: 4,
+  },
   toolbar: {
     flexDirection: 'row',
     backgroundColor: '#f1f5f9',
@@ -287,9 +279,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
     borderColor: '#e2e8f0',
   },
-  toolButton: { paddingHorizontal: 12, paddingVertical: 6, marginRight: 6, borderRadius: 6 },
+  toolButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 6,
+    borderRadius: 6,
+  },
   toolText: { fontSize: 16, fontWeight: '600' },
-
   contentInput: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
@@ -301,7 +297,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 240,
   },
-
   selectBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -314,8 +309,6 @@ const styles = StyleSheet.create({
   },
   selectText: { fontSize: 16 },
   arrow: { fontSize: 18, color: '#64748b' },
-
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -342,17 +335,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-  modalItemSelected: {
-    backgroundColor: '#2563eb',
-  },
-  modalItemIcon: {
-    fontSize: 22,
-    marginRight: 12,
-  },
-  modalItemText: {
-    fontSize: 17,
-    color: '#1e2937',
-  },
+  modalItemSelected: { backgroundColor: '#2563eb' },
+  modalItemIcon: { fontSize: 22, marginRight: 12 },
+  modalItemText: { fontSize: 17, color: '#1e2937' },
   modalCloseButton: {
     marginTop: 12,
     padding: 14,
@@ -365,7 +350,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-
   buttonGroup: { flexDirection: 'row', gap: 12, marginTop: 20 },
   saveButton: {
     flex: 1,
@@ -384,7 +368,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  cancelButtonText: { color: '#64748b', fontSize: 17, fontWeight: '600' },
+  cancelButtonText: {
+    color: '#64748b',
+    fontSize: 17,
+    fontWeight: '600',
+  },
 });
 
 export default AddScreen;
