@@ -11,18 +11,29 @@ import {
   StatusBar,
 } from "react-native";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'http://127.0.0.1:5000';
+const API_URL = "http://127.0.0.1:5000"; // hoặc "http://127.0.0.1:5000"
 
-// Kiểu note giống JSON Flask trả ra
+// Kiểu note giống dữ liệu đã map lại
 export interface Note {
   id: number;
   title: string;
   content: string;
   category: string;   // ví dụ: "congviec", "khac"
   code: number;       // mã
-  created_at: string; // "2026-06-09"
+  created_at: string; // ví dụ: "2026-06-09 10:20:00"
 }
+
+const getToken = async (): Promise<string | null> => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    return token;
+  } catch (e) {
+    console.log("Lỗi lấy token:", e);
+    return null;
+  }
+};
 
 const MyNoteScreen: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -31,10 +42,36 @@ const MyNoteScreen: React.FC = () => {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const res = await axios.get<Note[]>(`${API_URL}/notes`);
-      setNotes(res.data);
+
+      const token = await getToken();
+      if (!token) {
+        console.log("Chưa có token, có thể chưa đăng nhập");
+        setNotes([]);
+        return;
+      }
+
+      const res = await axios.get(`${API_URL}/api/my_note_mobile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Flask trả về: { articles: [...], counts: {...} }
+      const raw = res.data.articles;
+
+      const mapped: Note[] = raw.map((a: any) => ({
+        id: a.code,               // dùng code làm id
+        title: a.title,
+        content: a.content,
+        category: a.type_article, // backend dùng type_article
+        code: a.code,
+        created_at: a.time,       // backend trả field 'time'
+      }));
+
+      setNotes(mapped);
     } catch (error: any) {
-      console.log("Lỗi load notes:", error.message);
+      console.log("Lỗi load notes:", error.response?.data || error.message);
+      setNotes([]);
     } finally {
       setLoading(false);
     }

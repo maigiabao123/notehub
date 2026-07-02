@@ -27,7 +27,7 @@ const CongviecScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // ================== THAY ĐỔI ĐỊA CHỈ NÀY ==================
+  // ================== THAY ĐỔI ĐỊA CHỈ NÀY ================
   const API_URL = 'http://127.0.0.1:5000';
 
   const fetchCongviecNotes = async () => {

@@ -5,16 +5,14 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  ScrollView,
   TouchableOpacity,
   Modal,
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getHome, Article } from '../../../services/noteService';
-import NoteList from '../../../components/noteList';
+import NotesListView from '../components/notelistView/notelistView';
 
-// allowed routes (change if you rename app files)
 type AppPath =
   | '/'
   | '/add_note'
@@ -29,7 +27,6 @@ type AppPath =
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
-
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -54,22 +51,6 @@ const HomeScreen: React.FC = () => {
     (a.title || '').toLowerCase().includes(search.toLowerCase()),
   );
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <Text>Đang tải...</Text>
-      </View>
-    );
-  }
-
-  if (articles.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text>Chưa có ghi chú nào</Text>
-      </View>
-    );
-  }
-
   const goTo = (path: AppPath) => {
     setSidebarOpen(false);
     router.push(path);
@@ -84,7 +65,9 @@ const HomeScreen: React.FC = () => {
           <View style={styles.menuLine} />
           <View style={styles.menuLine} />
         </TouchableOpacity>
+
         <Text style={styles.logo}>NoteHub</Text>
+
         <TouchableOpacity
           style={styles.btnPrimary}
           onPress={() => router.push('/add_note')}
@@ -104,13 +87,13 @@ const HomeScreen: React.FC = () => {
       </View>
 
       {/* LIST */}
-      <ScrollView contentContainerStyle={styles.listContent}>
-        <NoteList
+      <View style={styles.listWrapper}>
+        <NotesListView
           notes={filtered}
-          onNotePress={(note) => console.log('Xem note', note.code)}
-          onLike={(note) => console.log('Like note', note.code)}
+          loading={loading}
+          onPressItem={(note) => console.log('Xem note', note.code)}
         />
-      </ScrollView>
+      </View>
 
       {/* SIDEBAR */}
       <Modal
@@ -138,15 +121,19 @@ const HomeScreen: React.FC = () => {
           </View>
 
           <Text style={styles.sectionTitle}>Danh mục</Text>
+
           <TouchableOpacity onPress={() => goTo('/hoc_tap')}>
             <Text style={styles.categoryItem}>🎓 Học tập</Text>
           </TouchableOpacity>
+
           <TouchableOpacity onPress={() => goTo('/cong_viec')}>
             <Text style={styles.categoryItem}>💼 Công việc</Text>
           </TouchableOpacity>
+
           <TouchableOpacity onPress={() => goTo('/ca_nhan')}>
             <Text style={styles.categoryItem}>👤 Cá nhân</Text>
           </TouchableOpacity>
+
           <TouchableOpacity onPress={() => goTo('/khac')}>
             <Text style={styles.categoryItem}>⋯ Khác</Text>
           </TouchableOpacity>
@@ -158,6 +145,7 @@ const HomeScreen: React.FC = () => {
             >
               <Text style={styles.btnOutlineText}>Tài khoản</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.btnOutline}
               onPress={() => goTo('/login')}
@@ -178,7 +166,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 16,
   },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -207,8 +194,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a73e8',
     borderRadius: 6,
   },
-  btnPrimaryText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  searchRow: { marginBottom: 8 },
+  btnPrimaryText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  searchRow: {
+    marginBottom: 8,
+  },
   searchInput: {
     backgroundColor: '#fff',
     borderRadius: 999,
@@ -218,7 +211,9 @@ const styles = StyleSheet.create({
     borderColor: '#d0d7e2',
     fontSize: 14,
   },
-  listContent: { paddingBottom: 20 },
+  listWrapper: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -240,25 +235,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  menuSection: { marginBottom: 16 },
-  menuItem: { fontSize: 14, color: '#555', marginBottom: 8 },
-  menuItemActive: { color: '#1a73e8', fontWeight: '600' },
+  menuSection: {
+    marginBottom: 16,
+  },
+  menuItem: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 8,
+  },
+  menuItemActive: {
+    color: '#1a73e8',
+    fontWeight: '600',
+  },
   sectionTitle: {
     fontSize: 12,
     color: '#9a9a9a',
     fontWeight: '600',
     marginBottom: 4,
   },
-  categoryItem: { fontSize: 13, color: '#333', marginVertical: 2 },
-  authButtons: { marginTop: 'auto' },
+  categoryItem: {
+    fontSize: 13,
+    color: '#333',
+    marginVertical: 2,
+  },
+  authButtons: {
+    marginTop: 'auto',
+  },
   btnOutline: {
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#1a73e8',
     borderRadius: 6,
     alignItems: 'center',
+    marginTop: 8,
   },
-  btnOutlineText: { color: '#1a73e8', fontWeight: '500', fontSize: 13 },
+  btnOutlineText: {
+    color: '#1a73e8',
+    fontWeight: '500',
+    fontSize: 13,
+  },
 });
 
 export default HomeScreen;

@@ -1,6 +1,9 @@
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# =========================================================
+# 1. KẾT NỐI CƠ SỞ DỮ LIỆU
+# =========================================================
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -9,10 +12,13 @@ def get_db_connection():
         database="mxh"
     )
 
-# ================== THÊM PHẦN USER (MỚI) ==================
-
+# =========================================================
+# 2. HÀM LIÊN QUAN TỚI USER
+# =========================================================
 def create_user(email, username, password, gender):
-
+    """
+    Tạo user mới, password được hash, role mặc định là 'user'.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     sql = """
@@ -29,7 +35,7 @@ def create_user(email, username, password, gender):
 
 def get_user_by_username(username):
     """
-    Lấy user theo username, trả dict hoặc None.
+    Lấy user theo username, trả về dict hoặc None.
     """
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -43,7 +49,7 @@ def get_user_by_username(username):
 
 def get_user_by_id(user_id):
     """
-    Lấy user theo user_id, trả dict hoặc None.
+    Lấy user theo user_id, trả về dict hoặc None.
     """
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -54,11 +60,9 @@ def get_user_by_id(user_id):
     conn.close()
     return row
 
-
-# ================== CÁC HÀM ARTICLE CŨ (GIỮ NGUYÊN) ==================
-
-# ---------- ARTICLE / BÀI VIẾT ----------
-
+# =========================================================
+# 3. HÀM LIÊN QUAN TỚI ARTICLE / BÀI VIẾT
+# =========================================================
 def insert_article(title, content, type_article, user_id):
     """
     Thêm bài viết mới, để MySQL tự tăng code (INT AUTO_INCREMENT).
@@ -92,6 +96,7 @@ def get_all_articles():
     conn.close()
     return articles
 
+
 def get_articles_by_user(user_id):
     """
     Lấy tất cả bài viết của một user (dùng cho trang my_note).
@@ -109,6 +114,7 @@ def get_articles_by_user(user_id):
     cur.close()
     conn.close()
     return articles
+
 
 def get_articles_by_type(type_article):
     """
@@ -128,7 +134,11 @@ def get_articles_by_type(type_article):
     conn.close()
     return articles
 
+
 def increase_like(article_code):
+    """
+    Tăng lượt thích cho một bài viết.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     sql = "UPDATE article SET luot_thich = luot_thich + 1 WHERE code = %s"
@@ -137,9 +147,23 @@ def increase_like(article_code):
     cur.close()
     conn.close()
 
+def decrease_like(article_code):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    sql = """
+        UPDATE article
+        SET luot_thich = GREATEST(luot_thich - 1, 0)
+        WHERE code = %s
+    """
+    cur.execute(sql, (article_code,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 def count_articles_by_type():
     """
-    Trả về dict: { 'hoctap': n1, 'congviec': n2, 'canhan': n3, 'khac': n4 }
+    Trả về dict: { 'hoctap': n1, 'congviec': n2, 'canhan': n3, 'khac': n4 }.
     """
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -158,13 +182,13 @@ def count_articles_by_type():
     for r in rows:
         t = r['type_article']
         counts[t] = r['total']
+
     return counts
 
-# ================== THÊM HÀM DELETE (MỚI) ==================
 
 def delete_article(code, user_id):
     """
-    Xóa bài viết theo code và user_id (đảm bảo chỉ xóa bài của chính user đó).
+    Xóa bài viết theo code và user_id (chỉ xóa bài của chính user đó).
     Trả về số dòng bị ảnh hưởng.
     """
     conn = get_db_connection()

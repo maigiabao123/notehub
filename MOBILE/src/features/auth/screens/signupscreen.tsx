@@ -15,7 +15,7 @@ import {
 import axios from "axios";
 import { useRouter } from "expo-router";
 
-const BASE_URL = "http://localhost:5000"; // web; emulator thì 10.0.2.2
+const BASE_URL = "http://127.0.0.1:5000"; // web; emulator thì 10.0.2.2
 
 const SignupScreen: React.FC = () => {
   const router = useRouter();

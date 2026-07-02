@@ -32,6 +32,11 @@ export const getArticlesByType = async (type?: string) => {
 };
 
 export const likeArticle = async (code: number) => {
-  const res = await api.post(`/api/like/${code}`);
+  const res = await api.post(`/api/articles/${code}/like`);
+  return res.data;
+};
+
+export const unlikeArticle = async (code: number) => {
+  const res = await api.post(`/api/articles/${code}/unlike`);
   return res.data;
 };
