@@ -35,9 +35,9 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
       prev.map(n =>
         n.code === note.code
           ? {
-              ...n,
-              luot_thich: (n.luot_thich || 0) + (liked ? -1 : 1),
-            }
+            ...n,
+            luot_thich: (n.luot_thich || 0) + (liked ? -1 : 1),
+          }
           : n,
       ),
     );
@@ -54,9 +54,9 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
         prev.map(n =>
           n.code === note.code
             ? {
-                ...n,
-                luot_thich: (n.luot_thich || 0) + (liked ? 1 : -1),
-              }
+              ...n,
+              luot_thich: (n.luot_thich || 0) + (liked ? 1 : -1),
+            }
             : n,
         ),
       );
@@ -90,7 +90,26 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
         return (
           <TouchableOpacity
             onPress={() => onPressItem && onPressItem(item)}
-            style={{ padding: 12, borderBottomWidth: 1, borderColor: '#eee' }}
+            style={{
+              backgroundColor: '#fff',
+              padding: 16,
+              marginHorizontal: 12,
+              marginVertical: 8,
+
+              borderWidth: 1,
+              borderColor: '#dbe3ec',
+              borderRadius: 16,
+
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+
+              elevation: 3,
+            }}
           >
             <Text style={{ fontWeight: '600' }}>{item.title}</Text>
             <Text numberOfLines={2}>{item.content}</Text>

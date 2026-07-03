@@ -143,7 +143,7 @@ def hoctap_api():
     return jsonify({"articles": articles, "counts": counts})
 
 
-@app.route("/api/congviec9")
+@app.route("/api/congviec")
 def congviec_api():
     articles = get_articles_by_type("congviec")
     counts = count_articles_by_type()

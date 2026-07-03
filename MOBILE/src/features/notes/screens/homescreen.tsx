@@ -25,12 +25,20 @@ type AppPath =
   | '/login'
   | '/signup';
 
+type Counts = {
+  hoctap: number;
+  congviec: number;
+  canhan: number;
+  khac: number;
+};
+
 const HomeScreen: React.FC = () => {
   const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [counts, setCounts] = useState<Counts | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -38,6 +46,8 @@ const HomeScreen: React.FC = () => {
         const data = await getHome();
         console.log('articles sau khi getHome:', data.articles);
         setArticles(data.articles || []);
+        // LẤY counts TỪ API /api/home
+        setCounts(data.counts || null);
       } catch (e) {
         console.log('LOI /api/home:', e);
       } finally {
@@ -65,9 +75,7 @@ const HomeScreen: React.FC = () => {
           <View style={styles.menuLine} />
           <View style={styles.menuLine} />
         </TouchableOpacity>
-
         <Text style={styles.logo}>NoteHub</Text>
-
         <TouchableOpacity
           style={styles.btnPrimary}
           onPress={() => router.push('/add_note')}
@@ -122,20 +130,33 @@ const HomeScreen: React.FC = () => {
 
           <Text style={styles.sectionTitle}>Danh mục</Text>
 
+          {/* mỗi dòng hiển thị icon + tên + số bài */}
           <TouchableOpacity onPress={() => goTo('/hoc_tap')}>
-            <Text style={styles.categoryItem}>🎓 Học tập</Text>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>🎓 Học tập</Text>
+              <Text style={styles.categoryCount}>{counts?.hoctap ?? 0}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => goTo('/cong_viec')}>
-            <Text style={styles.categoryItem}>💼 Công việc</Text>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>💼 Công việc</Text>
+              <Text style={styles.categoryCount}>{counts?.congviec ?? 0}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => goTo('/ca_nhan')}>
-            <Text style={styles.categoryItem}>👤 Cá nhân</Text>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>👤 Cá nhân</Text>
+              <Text style={styles.categoryCount}>{counts?.canhan ?? 0}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => goTo('/khac')}>
-            <Text style={styles.categoryItem}>⋯ Khác</Text>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>⋯   Khác</Text>
+              <Text style={styles.categoryCount}>{counts?.khac ?? 0}</Text>
+            </View>
           </TouchableOpacity>
 
           <View style={styles.authButtons}>
@@ -145,7 +166,6 @@ const HomeScreen: React.FC = () => {
             >
               <Text style={styles.btnOutlineText}>Tài khoản</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.btnOutline}
               onPress={() => goTo('/login')}
@@ -256,7 +276,18 @@ const styles = StyleSheet.create({
   categoryItem: {
     fontSize: 13,
     color: '#333',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginVertical: 2,
+    marginBottom: 20,
+  },
+  categoryCount: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1a73e8',
   },
   authButtons: {
     marginTop: 'auto',
