@@ -19,7 +19,11 @@ type Props = {
   onPressItem?: (note: Article) => void;
 };
 
-const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
+const NotesListView: React.FC<Props> = ({
+  notes,
+  loading,
+  onPressItem,
+}) => {
   const [data, setData] = useState<Article[]>([]);
   const [likedMap, setLikedMap] = useState<{ [code: number]: boolean }>({});
 
@@ -30,43 +34,58 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
   const toggleLike = async (note: Article) => {
     const liked = !!likedMap[note.code];
 
-    setLikedMap(prev => ({ ...prev, [note.code]: !liked }));
+    setLikedMap(prev => ({
+      ...prev,
+      [note.code]: !liked,
+    }));
+
     setData(prev =>
       prev.map(n =>
         n.code === note.code
           ? {
-            ...n,
-            luot_thich: (n.luot_thich || 0) + (liked ? -1 : 1),
-          }
+              ...n,
+              luot_thich: (n.luot_thich || 0) + (liked ? -1 : 1),
+            }
           : n,
       ),
     );
 
     try {
-      if (!liked) {
-        await likeArticle(note.code);
-      } else {
+      if (liked) {
         await unlikeArticle(note.code);
+      } else {
+        await likeArticle(note.code);
       }
     } catch (e) {
-      setLikedMap(prev => ({ ...prev, [note.code]: liked }));
+      console.log('Error like/unlike', e);
+
+      setLikedMap(prev => ({
+        ...prev,
+        [note.code]: liked,
+      }));
+
       setData(prev =>
         prev.map(n =>
           n.code === note.code
             ? {
-              ...n,
-              luot_thich: (n.luot_thich || 0) + (liked ? 1 : -1),
-            }
+                ...n,
+                luot_thich: (n.luot_thich || 0) + (liked ? 1 : -1),
+              }
             : n,
         ),
       );
-      console.log('Error like/unlike', e);
     }
   };
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <ActivityIndicator />
       </View>
     );
@@ -74,7 +93,13 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
 
   if (!data.length) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Text>Chưa có ghi chú nào</Text>
       </View>
     );
@@ -83,13 +108,12 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
   return (
     <FlatList
       data={data}
-      keyExtractor={item => item.code.toString()}
+      keyExtractor={(item) => item.code.toString()}
       renderItem={({ item }) => {
         const liked = !!likedMap[item.code];
 
         return (
-          <TouchableOpacity
-            onPress={() => onPressItem && onPressItem(item)}
+          <View
             style={{
               backgroundColor: '#fff',
               padding: 16,
@@ -111,28 +135,83 @@ const NotesListView: React.FC<Props> = ({ notes, loading, onPressItem }) => {
               elevation: 3,
             }}
           >
-            <Text style={{ fontWeight: '600' }}>{item.title}</Text>
-            <Text numberOfLines={2}>{item.content}</Text>
-
-            {/* chỉ thêm tim ở đây */}
-            <View
+            <Text
               style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                marginTop: 8,
+                fontWeight: '700',
+                fontSize: 16,
+                marginBottom: 6,
               }}
             >
-              <TouchableOpacity onPress={() => toggleLike(item)}>
-                <FontAwesome
-                  name={liked ? 'heart' : 'heart-o'}
-                  size={18}
-                  color={liked ? 'red' : 'grey'}
-                />
+              {item.title}
+            </Text>
+
+            <Text
+              numberOfLines={2}
+              style={{
+                color: '#444',
+                lineHeight: 22,
+              }}
+            >
+              {item.content}
+            </Text>
+
+            {/* Footer */}
+            <View
+              style={{
+                marginTop: 14,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              {/* Xem chi tiết */}
+              <TouchableOpacity
+                onPress={() => onPressItem?.(item)}
+                style={{
+                  backgroundColor: '#1a73e8',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontWeight: '600',
+                  }}
+                >
+                  Xem chi tiết
+                </Text>
               </TouchableOpacity>
-              <Text style={{ marginLeft: 6 }}>{item.luot_thich ?? 0}</Text>
+
+              {/* Like */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => toggleLike(item)}
+                >
+                  <FontAwesome
+                    name={liked ? 'heart' : 'heart-o'}
+                    size={20}
+                    color={liked ? 'red' : 'grey'}
+                  />
+                </TouchableOpacity>
+
+                <Text
+                  style={{
+                    marginLeft: 6,
+                    fontSize: 15,
+                  }}
+                >
+                  {item.luot_thich ?? 0}
+                </Text>
+              </View>
             </View>
-          </TouchableOpacity>
+          </View>
         );
       }}
     />

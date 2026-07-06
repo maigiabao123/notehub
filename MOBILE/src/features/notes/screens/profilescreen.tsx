@@ -106,12 +106,9 @@ const ProfileScreen: React.FC = () => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => setSidebarOpen((prev) => !prev)}>
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Hồ sơ</Text>
-        </View>
+        <TouchableOpacity onPress={() => router.push("/")}>
+          <Text style={styles.brand}>NoteHub</Text>
+        </TouchableOpacity>
 
         {/* DROPDOWN TÀI KHOẢN */}
         <View style={styles.headerRight}>
@@ -135,49 +132,7 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* SIDEBAR */}
-      {sidebarOpen && (
-        <View style={styles.sidebar}>
-          <Text style={styles.menuTitle}>Danh mục</Text>
 
-          <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemActive]}
-            onPress={() => router.replace("/")}
-          >
-            <Text style={[styles.menuLabel, styles.menuLabelActive]}>
-              Trang chủ
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/my_notes")}
-          >
-            <Text style={styles.menuLabel}>Ghi chú của tôi</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/cong_viec")}
-          >
-            <Text style={styles.menuLabel}>Công việc</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/hoc_tap")}
-          >
-            <Text style={styles.menuLabel}>Học tập</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/khac")}
-          >
-            <Text style={styles.menuLabel}>Khác</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* NỘI DUNG HỒ SƠ + TÓM TẮT TÀI KHOẢN */}
       <ScrollView
@@ -380,6 +335,9 @@ const styles = StyleSheet.create({
     padding: 16,
     minWidth: 200,
   },
+  brand: {
+    fontSize: 18, color: "rgba(26, 115, 232, 1.00)", fontWeight: "800"
+  }
 });
 
 export default ProfileScreen;

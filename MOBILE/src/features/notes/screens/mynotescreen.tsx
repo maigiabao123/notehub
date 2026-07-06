@@ -11,6 +11,7 @@ import {
   StatusBar,
 } from "react-native";
 import axios from "axios";
+import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = "http://127.0.0.1:5000"; // hoặc "http://127.0.0.1:5000"
@@ -36,6 +37,7 @@ const getToken = async (): Promise<string | null> => {
 };
 
 const MyNoteScreen: React.FC = () => {
+  const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -100,7 +102,7 @@ const MyNoteScreen: React.FC = () => {
       {/* Thanh trên */}
       <View style={styles.topBar}>
         <Text style={styles.topTitle}>Ghi chú của tôi</Text>
-        <TouchableOpacity style={styles.addBtn}>
+        <TouchableOpacity style={styles.addBtn} onPress={() => router.push("/add_note")}>
           <Text style={styles.addBtnText}>+ Thêm ghi chú</Text>
         </TouchableOpacity>
       </View>
@@ -170,4 +172,7 @@ const styles = StyleSheet.create({
   cardContent: { fontSize: 13, color: "#444", marginBottom: 12 },
   cardMeta: { fontSize: 11, color: "#777" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  brand: {
+    fontSize: 18, color: "rgba(26, 115, 232, 1.00)", fontWeight: "800"
+  }
 });

@@ -26,6 +26,10 @@ app = Flask(__name__)
 CORS(
     app,
     resources={r"/api/*": {"origins": "*"}},
+    origins=["http://localhost:8081", "http://127.0.0.1:8081"],
+    supports_credentials=True,
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"]
 )
 
 app.config["SECRET_KEY"] = "maigiabao_bi_mat2026"

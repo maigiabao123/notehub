@@ -95,13 +95,18 @@ const HomeScreen: React.FC = () => {
       </View>
 
       {/* LIST */}
-      <View style={styles.listWrapper}>
-        <NotesListView
-          notes={filtered}
-          loading={loading}
-          onPressItem={(note) => console.log('Xem note', note.code)}
-        />
-      </View>
+      <NotesListView
+        notes={filtered}
+        loading={loading}
+        onPressItem={(note) =>
+          router.push({
+            pathname: '/specific_note',
+            params: {
+              code: note.code.toString(),
+            },
+          })
+        }
+      />
 
       {/* SIDEBAR */}
       <Modal

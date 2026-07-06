@@ -78,9 +78,9 @@ const CanhanScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.logo}>NoteHub</Text>
-        </View>
+        <TouchableOpacity onPress={() => router.push("/")}>
+          <Text style={styles.brand}>NoteHub</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push('/add_note')}
@@ -159,6 +159,9 @@ const styles = StyleSheet.create({
   noteContent: { fontSize: 15, color: '#374151', lineHeight: 22, marginBottom: 10 },
   noteMeta: { fontSize: 13, color: '#6b7280' },
   emptyText: { textAlign: 'center', marginTop: 100, fontSize: 16, color: '#9ca3af' },
+  brand: {
+    fontSize: 18, color: "rgba(26, 115, 232, 1.00)", fontWeight: "800"
+  }
 });
 
 export default CanhanScreen;

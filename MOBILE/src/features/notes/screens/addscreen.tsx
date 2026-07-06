@@ -108,10 +108,13 @@ const AddScreen: React.FC = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoid}
+      
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+
+        
         >
           <View style={styles.content}>
             <Text style={styles.headerTitle}>Thêm ghi chú mới</Text>
@@ -373,6 +376,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
+  brand: {
+    fontSize: 18, color: "rgba(26, 115, 232, 1.00)", fontWeight: "800"
+  }
 });
 
 export default AddScreen;
