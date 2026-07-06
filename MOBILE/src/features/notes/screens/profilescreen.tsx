@@ -30,11 +30,8 @@ const ProfileScreen: React.FC = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // nếu bạn dùng modal ở đâu đó
   const [modalVisible, setModalVisible] = useState(false);
 
   // Lấy thông tin user (ưu tiên từ AsyncStorage, nếu chưa có thì gọi API)
@@ -42,20 +39,27 @@ const ProfileScreen: React.FC = () => {
     const fetchUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem("user");
+
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         } else {
           const token = await AsyncStorage.getItem("token");
+
           if (token) {
             const res = await axios.get(`${BASE_URL}/api/profile`, {
               headers: { Authorization: `Bearer ${token}` },
             });
+
             setUser(res.data);
             await AsyncStorage.setItem("user", JSON.stringify(res.data));
+          } else {
+            // Không có token ⇒ không thể lấy user
+            setUser(null);
           }
         }
       } catch (err) {
         console.log("Error fetching user:", err);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -76,7 +80,8 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  if (loading || !user) {
+  // Đang load dữ liệu
+  if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
@@ -84,6 +89,19 @@ const ProfileScreen: React.FC = () => {
     );
   }
 
+  // Load xong nhưng không có user ⇒ không quay nữa, hiển thị thông báo/redirect
+  if (!user) {
+    return (
+      <View style={styles.center}>
+        <Text>Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.</Text>
+        <TouchableOpacity onPress={() => router.replace("/login")}>
+          <Text style={{ color: "blue", marginTop: 8 }}>Đăng nhập</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Có user ⇒ hiển thị hồ sơ
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -117,7 +135,7 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* SIDEBAR (nếu dùng) */}
+      {/* SIDEBAR */}
       {sidebarOpen && (
         <View style={styles.sidebar}>
           <Text style={styles.menuTitle}>Danh mục</Text>
@@ -230,7 +248,7 @@ const ProfileScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* ví dụ modal nếu bạn cần */}
+      {/* Modal demo (nếu cần) */}
       <Modal
         visible={modalVisible}
         transparent
@@ -262,12 +280,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     elevation: 2,
+    zIndex: 999,
   },
   headerLeft: { flexDirection: "row", alignItems: "center" },
   menuIcon: { fontSize: 20, marginRight: 8 },
   headerTitle: { fontSize: 20, fontWeight: "bold" },
-  headerRight: { position: "relative" },
 
+  headerRight: { position: "relative", zIndex: 1000 },
   accountBtn: {
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -275,7 +294,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   accountBtnText: { fontWeight: "500" },
-
   accountMenu: {
     position: "absolute",
     top: 40,
@@ -284,8 +302,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 4,
     elevation: 4,
+    zIndex: 1000,
   },
-  accountMenuItem: { paddingHorizontal: 12, paddingVertical: 8 },
+  accountMenuItem: { paddingHorizontal: 12, paddingVertical: 8, width: 100 },
   accountMenuText: { color: "#e53935", fontWeight: "500" },
 
   sidebar: {
@@ -323,8 +342,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
   },
-  cardTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
 
+  cardTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
   label: { marginTop: 8, marginBottom: 4 },
   input: {
     borderWidth: 1,

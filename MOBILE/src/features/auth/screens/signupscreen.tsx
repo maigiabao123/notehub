@@ -15,7 +15,8 @@ import {
 import axios from "axios";
 import { useRouter } from "expo-router";
 
-const BASE_URL = "http://127.0.0.1:5000"; // web; emulator thì 10.0.2.2
+const BASE_URL =
+  Platform.OS === "web" ? "http://localhost:5000" : "http://10.0.2.2:5000";
 
 const SignupScreen: React.FC = () => {
   const router = useRouter();
@@ -25,8 +26,8 @@ const SignupScreen: React.FC = () => {
   const [gender, setGender] = useState("");
 
   const handleSignup = async () => {
-    if (!email || !username || !password) {
-      Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin");
+    if (!email || !username || !password || !gender) {
+      Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin!");
       return;
     }
 
@@ -39,16 +40,8 @@ const SignupScreen: React.FC = () => {
       });
 
       console.log("Signup success:", res.data);
-
-      // CHUYỂN TRỰC TIẾP VỀ LOGIN
       router.replace("/login");
-
-      // Nếu muốn hiển thị Alert:
-      // Alert.alert("Thành công", "Tài khoản đã được tạo!", [
-      //   { text: "OK", onPress: () => router.replace("/login") },
-      // ]);
     } catch (error: any) {
-      console.log("Signup error:", error?.response?.data || error.message);
       const msg =
         error?.response?.data?.message ||
         "Đăng ký thất bại. Vui lòng thử lại.";
@@ -63,21 +56,12 @@ const SignupScreen: React.FC = () => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.logo}>NoteHub</Text>
-
-          <View style={styles.hero}>
-            <Text style={styles.heroTitle}>
-              Chào mừng bạn đến với{" "}
-              <Text style={styles.heroHighlight}>NoteHub!</Text>
-            </Text>
-            <Text style={styles.heroSubtitle}>
-              Tạo tài khoản để bắt đầu ghi chú, lưu ý tưởng và quản lý mọi thứ
-              của bạn dễ dàng.
-            </Text>
-          </View>
-
           <View style={styles.card}>
-            <Text style={styles.formTitle}>Đăng ký tài khoản</Text>
+            <Text style={styles.brand}>NoteHub</Text>
+            <Text style={styles.title}>Đăng ký tài khoản</Text>
+            <Text style={styles.subtitle}>
+              Điền thông tin để tạo tài khoản mới.
+            </Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
@@ -117,20 +101,31 @@ const SignupScreen: React.FC = () => {
               <Text style={styles.label}>Giới tính</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Nam / Nữ / Khác"
+                placeholder="Nhập giới tính"
                 value={gender}
                 onChangeText={setGender}
               />
             </View>
 
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleSignup}>
-              <Text style={styles.primaryText}>Đăng ký</Text>
+            <TouchableOpacity style={styles.button} onPress={handleSignup}>
+              <Text style={styles.buttonText}>Đăng ký</Text>
+            </TouchableOpacity>
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>hoặc</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity style={styles.googleButton}>
+              <View style={styles.googleDot} />
+              <Text style={styles.googleText}>Đăng ký với Google</Text>
             </TouchableOpacity>
 
             <View style={styles.bottomRow}>
               <Text style={styles.bottomText}>Đã có tài khoản? </Text>
               <TouchableOpacity onPress={() => router.push("/login")}>
-                <Text style={styles.bottomLink}>Đăng nhập</Text>
+                <Text style={styles.link}>Đăng nhập</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -140,41 +135,124 @@ const SignupScreen: React.FC = () => {
   );
 };
 
+export default SignupScreen;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
-  scroll: { padding: 16 },
-  logo: {
+  container: {
+    flex: 1,
+    backgroundColor: "#f4f6fb",
+  },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  card: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+  } as any,
+  brand: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
+    color: "#2563eb",
     textAlign: "center",
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  inputGroup: {
     marginBottom: 16,
   },
-  hero: { marginBottom: 16 },
-  heroTitle: { fontSize: 20, fontWeight: "bold" },
-  heroHighlight: { color: "#ff5a5f" },
-  heroSubtitle: { marginTop: 4, color: "#666" },
-  card: { backgroundColor: "#fff", borderRadius: 8, padding: 16 },
-  formTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
-  inputGroup: { marginBottom: 12 },
-  label: { marginBottom: 4 },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 6,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    backgroundColor: "#fff",
   },
-  primaryBtn: {
-    marginTop: 8,
-    backgroundColor: "#007AFF",
-    paddingVertical: 10,
-    borderRadius: 6,
+  button: {
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    paddingVertical: 13,
     alignItems: "center",
+    marginTop: 4,
   },
-  primaryText: { color: "#fff", fontWeight: "bold" },
-  bottomRow: { flexDirection: "row", marginTop: 12, justifyContent: "center" },
-  bottomText: { color: "#555" },
-  bottomLink: { color: "#007AFF", fontWeight: "bold" },
+  buttonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 18,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#e5e7eb",
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    fontSize: 13,
+    color: "#9ca3af",
+  },
+  googleButton: {
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  googleDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#22c55e",
+    marginRight: 8,
+  },
+  googleText: {
+    fontSize: 14,
+    color: "#374151",
+  },
+  bottomRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 18,
+  },
+  bottomText: {
+    color: "#4b5563",
+    fontSize: 14,
+  },
+  link: {
+    color: "#2563eb",
+    fontSize: 14,
+    fontWeight: "700",
+  },
 });
-
-export default SignupScreen;

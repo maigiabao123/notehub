@@ -11,7 +11,7 @@ type AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType>({
   token: null,
-  setToken: () => {},
+  setToken: () => { },
 });
 
 export default function RootLayout() {
@@ -22,30 +22,33 @@ export default function RootLayout() {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = await AsyncStorage.getItem("token"); // bạn đang lưu "token"
-      setToken(storedToken);
-      setLoading(false);
+      try {
+        const storedToken = await AsyncStorage.getItem("token");
+        setToken(storedToken);
+      } catch (e) {
+        console.log('initAuth error', e);
+        // tuỳ bạn xử lý
+      } finally {
+        setLoading(false);  // đảm bảo luôn chạy
+      }
     };
     initAuth();
   }, []);
-
   useEffect(() => {
     if (loading) return;
 
-    const first = segments[0]; // tên file đầu trong /src/app
+    const first = segments[0];
     const inAuth = first === "login" || first === "signup";
 
-    if (!token && !inAuth) {
-      // chưa đăng nhập mà không ở trang login/signup → ép về /login
-      router.replace("/login");
+    // CHỈ redirect khi ĐÃ login mà vẫn ở login/signup
+    if (token && inAuth) {
+      router.replace("/"); // index.tsx là trang chủ của bạn
     }
 
-    if (token && inAuth) {
-      // đã có token mà vẫn ở login/signup → chuyển về trang chính
-      router.replace("/"); // hoặc "/" nếu bạn muốn
-    }
+    // KHÔNG ép người chưa đăng nhập về /login nữa
   }, [segments, token, loading, router]);
 
+  console.log('RootLayout loading:', loading, 'token:', token);
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
