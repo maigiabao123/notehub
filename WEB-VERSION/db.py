@@ -218,3 +218,19 @@ def delete_article(code, user_id):
     cur.close()
     conn.close()
     return affected
+
+def update_article(code, title, content, type_article):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    sql = """
+        UPDATE article
+        SET title = %s,
+            content = %s,
+            type_article = %s,
+            time = NOW()
+        WHERE code = %s
+    """
+    cur.execute(sql, (title, content, type_article, code))
+    conn.commit()
+    cur.close()
+    conn.close()

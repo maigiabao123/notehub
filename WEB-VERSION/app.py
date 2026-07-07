@@ -4,7 +4,6 @@ from werkzeug.security import check_password_hash
 from functools import wraps
 import jwt
 import datetime
-
 from db import (
     create_user,
     get_user_by_username,
@@ -17,7 +16,8 @@ from db import (
     delete_article,
     get_user_by_id,
     decrease_like,
-    get_article_by_code
+    get_article_by_code,
+    update_article
 )
 
 # =========================================================
@@ -26,13 +26,12 @@ from db import (
 app = Flask(__name__)
 CORS(
     app,
-    resources={r"/api/*": {"origins": "*"}},
+    resources={r"/api/*": {"origins": "*"}},  # CORS áp dụng cho tất cả route /api/*
     origins=["http://localhost:8081", "http://127.0.0.1:8081"],
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"]
 )
-
 app.config["SECRET_KEY"] = "maigiabao_bi_mat2026"
 app.secret_key = "maigiabao_bi_mat2026"
 
@@ -46,17 +45,14 @@ def token_required(f):
         auth = request.headers.get("Authorization")
         if not auth or not auth.startswith("Bearer "):
             return jsonify({"message": "No token"}), 401
-
         token = auth.split(" ")[1]
         try:
             data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
         except Exception:
             return jsonify({"message": "Token không hợp lệ"}), 401
-
         # Gắn user_id vào request để dùng trong route
         request.user_id = data["user_id"]
         return f(*args, **kwargs)
-
     return decorated
 
 # =========================================================
@@ -92,13 +88,10 @@ def api_delete_article(code):
     """Xóa ghi chú bằng session (dùng cho web)."""
     if "user_id" not in session:
         return jsonify({"error": "Chua dang nhap"}), 401
-
     user_id = session["user_id"]
     affected = delete_article(code, user_id)
-
     if affected == 0:
         return jsonify({"error": "Khong co quyen xoa"}), 403
-
     return jsonify({"message": "Da xoa"}), 200
 
 # =========================================================
@@ -185,22 +178,20 @@ def api_my_note_mobile():
 def get_article_by_code_api(code):
     """Lấy chi tiết bài viết theo code"""
     print(f"[DEBUG] Đang tìm bài viết với code = {code}")  # Log console
-    
+
     try:
         article = get_article_by_code(code)
-        
         print(f"[DEBUG] Kết quả query: {article}")  # Log kết quả
-        
+
         if not article:
             return jsonify({"error": "Không tìm thấy bài viết", "code": code}), 404
-            
+
         return jsonify(article), 200
-        
+
     except Exception as e:
         print(f"[ERROR] Lỗi: {str(e)}")
         return jsonify({"error": str(e)}), 500
-    
-    
+
 
 @app.route("/api/notes", methods=["POST"])
 @token_required
@@ -232,6 +223,42 @@ def api_delete_article_mobile(code):
         return jsonify({"message": "Không có quyền xóa hoặc không tìm thấy"}), 403
 
     return jsonify({"message": "Đã xóa"}), 200
+
+# ---------- ROUTE EDIT NOTE CHO MOBILE (đã chuyển vào /api) ----------
+@app.route("/api/notes/<int:code>/edit", methods=["GET", "POST"])
+def edit_note(code):
+    """
+    API cho mobile:
+    - GET  /api/notes/<code>/edit  : trả về dữ liệu ghi chú
+    - POST /api/notes/<code>/edit  : cập nhật ghi chú
+    """
+    # Lấy note hiện tại
+    article = get_article_by_code(code)
+    if not article:
+        return jsonify({"error": "Không tìm thấy ghi chú"}), 404
+
+    # ----- GET: trả dữ liệu cho màn edit -----
+    if request.method == "GET":
+        return jsonify({
+            "code":         article["code"],
+            "title":        article["title"],
+            "content":      article["content"],
+            "type_article": article["type_article"],
+            "time":         article.get("time")
+        }), 200
+
+    # ----- POST: nhận dữ liệu cập nhật -----
+    title     = request.form.get("title")
+    content   = request.form.get("content")
+    note_type = request.form.get("type_article")
+
+    if not all([title, content, note_type]):
+        return jsonify({"error": "Thiếu dữ liệu"}), 400
+
+    # Cập nhật DB
+    update_article(code, title, content, note_type)
+
+    return jsonify({"message": "Cập nhật ghi chú thành công"}), 200
 
 # =========================================================
 # 7. API MOBILE: AUTH (SIGNUP, LOGIN, PROFILE)
@@ -299,7 +326,6 @@ def api_profile():
     """Lấy thông tin profile user (mobile, dùng token)."""
     user_id = request.user_id
     user = get_user_by_id(user_id)
-
     if not user:
         return jsonify({"message": "Không tìm thấy user"}), 404
 
@@ -312,16 +338,14 @@ def api_profile():
         }
     ), 200
 
-
 #==========================================================
 # TIM
 #==========================================================
-
 @app.route("/api/articles/<int:code>/like", methods=["POST"])
 def api_like_article(code):
-    # Tăng 1 lượt thích
     increase_like(code)
     return jsonify({"message": "liked"}), 200
+
 
 @app.route("/api/articles/<int:code>/unlike", methods=["POST"])
 def api_unlike_article(code):
