@@ -16,7 +16,8 @@ from db import (
     count_articles_by_type,
     delete_article,
     get_user_by_id,
-    decrease_like
+    decrease_like,
+    get_article_by_code
 )
 
 # =========================================================
@@ -179,6 +180,27 @@ def api_my_note_mobile():
     counts = count_articles_by_type()
     return jsonify({"articles": articles, "counts": counts}), 200
 
+
+@app.route("/api/article/code/<int:code>", methods=["GET"])
+def get_article_by_code_api(code):
+    """Lấy chi tiết bài viết theo code"""
+    print(f"[DEBUG] Đang tìm bài viết với code = {code}")  # Log console
+    
+    try:
+        article = get_article_by_code(code)
+        
+        print(f"[DEBUG] Kết quả query: {article}")  # Log kết quả
+        
+        if not article:
+            return jsonify({"error": "Không tìm thấy bài viết", "code": code}), 404
+            
+        return jsonify(article), 200
+        
+    except Exception as e:
+        print(f"[ERROR] Lỗi: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+    
 
 @app.route("/api/notes", methods=["POST"])
 @token_required

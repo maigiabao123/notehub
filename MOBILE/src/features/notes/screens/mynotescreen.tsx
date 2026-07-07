@@ -9,22 +9,34 @@ import {
   SafeAreaView,
   ActivityIndicator,
   StatusBar,
+  Modal,
+  Pressable,
 } from "react-native";
 import axios from "axios";
 import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://127.0.0.1:5000"; // hoặc "http://127.0.0.1:5000"
+const API_URL = "http://127.0.0.1:5000";
 
-// Kiểu note giống dữ liệu đã map lại
 export interface Note {
   id: number;
   title: string;
   content: string;
-  category: string;   // ví dụ: "congviec", "khac"
-  code: number;       // mã
-  created_at: string; // ví dụ: "2026-06-09 10:20:00"
+  category: string;
+  code: number;
+  created_at: string;
 }
+
+type AppPath =
+  | '/' 
+  | '/add_note' 
+  | '/my_notes' 
+  | '/hoc_tap' 
+  | '/cong_viec' 
+  | '/ca_nhan' 
+  | '/khac' 
+  | '/profile' 
+  | '/login';
 
 const getToken = async (): Promise<string | null> => {
   try {
@@ -40,11 +52,11 @@ const MyNoteScreen: React.FC = () => {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const fetchNotes = async () => {
     try {
       setLoading(true);
-
       const token = await getToken();
       if (!token) {
         console.log("Chưa có token, có thể chưa đăng nhập");
@@ -53,21 +65,17 @@ const MyNoteScreen: React.FC = () => {
       }
 
       const res = await axios.get(`${API_URL}/api/my_note_mobile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Flask trả về: { articles: [...], counts: {...} }
-      const raw = res.data.articles;
-
+      const raw = res.data.articles || [];
       const mapped: Note[] = raw.map((a: any) => ({
-        id: a.code,               // dùng code làm id
+        id: a.code,
         title: a.title,
         content: a.content,
-        category: a.type_article, // backend dùng type_article
+        category: a.type_article,
         code: a.code,
-        created_at: a.time,       // backend trả field 'time'
+        created_at: a.time,
       }));
 
       setNotes(mapped);
@@ -82,6 +90,11 @@ const MyNoteScreen: React.FC = () => {
   useEffect(() => {
     fetchNotes();
   }, []);
+
+  const goTo = (path: AppPath) => {
+    setSidebarOpen(false);
+    router.push(path);
+  };
 
   const renderNote = ({ item }: { item: Note }) => (
     <View style={styles.card}>
@@ -99,15 +112,20 @@ const MyNoteScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Thanh trên */}
-      <View style={styles.topBar}>
+      {/* HEADER với Hamburger Menu */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.menuBtn}>
+          <View style={styles.menuLine} />
+          <View style={styles.menuLine} />
+          <View style={styles.menuLine} />
+        </TouchableOpacity>
         <Text style={styles.topTitle}>Ghi chú của tôi</Text>
         <TouchableOpacity style={styles.addBtn} onPress={() => router.push("/add_note")}>
-          <Text style={styles.addBtnText}>+ Thêm ghi chú</Text>
+          <Text style={styles.addBtnText}>+ Thêm</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Nội dung */}
+      {/* Danh sách ghi chú */}
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#1976d2" />
@@ -126,6 +144,68 @@ const MyNoteScreen: React.FC = () => {
           columnWrapperStyle={{ justifyContent: "space-between" }}
         />
       )}
+
+      {/* SIDEBAR - Giống HomeScreen */}
+      <Modal
+        visible={sidebarOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSidebarOpen(false)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setSidebarOpen(false)} />
+        <View style={styles.sidebar}>
+          <View style={styles.sidebarHeader}>
+            <Text style={styles.logo}>NoteHub</Text>
+            <TouchableOpacity onPress={() => setSidebarOpen(false)}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold' }}>×</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.menuSection}>
+            <TouchableOpacity onPress={() => goTo('/')}>
+              <Text style={styles.menuItem}>Trang chủ</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => goTo('/my_notes')}>
+              <Text style={[styles.menuItem, styles.menuItemActive]}>Ghi chú của tôi</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.sectionTitle}>Danh mục</Text>
+
+          <TouchableOpacity onPress={() => goTo('/hoc_tap')}>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>🎓 Học tập</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => goTo('/cong_viec')}>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>💼 Công việc</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => goTo('/ca_nhan')}>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>👤 Cá nhân</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => goTo('/khac')}>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryItem}>⋯ Khác</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.authButtons}>
+            <TouchableOpacity style={styles.btnOutline} onPress={() => goTo('/profile')}>
+              <Text style={styles.btnOutlineText}>Tài khoản</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnOutline} onPress={() => goTo('/login')}>
+              <Text style={styles.btnOutlineText}>Đăng nhập</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -134,26 +214,41 @@ export default MyNoteScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f7fb" },
-  topBar: {
+
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#ffffff",
     elevation: 2,
   },
-  topTitle: { fontSize: 20, fontWeight: "700" },
+  menuBtn: {
+    width: 28,
+    height: 20,
+    justifyContent: 'space-between',
+    marginRight: 12,
+  },
+  menuLine: {
+    height: 2.5,
+    backgroundColor: '#333',
+    borderRadius: 2,
+  },
+  topTitle: { 
+    fontSize: 20, 
+    fontWeight: "700",
+    flex: 1,
+  },
   addBtn: {
     backgroundColor: "#1976d2",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 6,
   },
-  addBtnText: { color: "#ffffff", fontWeight: "600" },
+  addBtnText: { color: "#ffffff", fontWeight: "600", fontSize: 13 },
+
   list: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    padding: 16,
     paddingBottom: 32,
   },
   card: {
@@ -172,7 +267,75 @@ const styles = StyleSheet.create({
   cardContent: { fontSize: 13, color: "#444", marginBottom: 12 },
   cardMeta: { fontSize: 11, color: "#777" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  brand: {
-    fontSize: 18, color: "rgba(26, 115, 232, 1.00)", fontWeight: "800"
-  }
+
+  // Sidebar styles
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  sidebar: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: 270,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 20,
+    elevation: 10,
+  },
+  sidebarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  logo: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1a73e8',
+  },
+  menuSection: {
+    marginBottom: 20,
+  },
+  menuItem: {
+    fontSize: 15,
+    color: '#555',
+    paddingVertical: 10,
+  },
+  menuItemActive: {
+    color: '#1a73e8',
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    fontSize: 13,
+    color: '#9a9a9a',
+    fontWeight: '600',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  categoryItem: {
+    fontSize: 15,
+    color: '#333',
+    paddingVertical: 10,
+  },
+  categoryRow: {
+    marginVertical: 4,
+  },
+  authButtons: {
+    marginTop: 'auto',
+  },
+  btnOutline: {
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#1a73e8',
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  btnOutlineText: {
+    color: '#1a73e8',
+    fontWeight: '600',
+  },
 });

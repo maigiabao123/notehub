@@ -1,21 +1,21 @@
-// features/notes/screens/[id].tsx
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'react-native';
+// features/notes/screens/[code].tsx
+import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Alert, Dimensions, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { jwtDecode } from 'jwt-decode';
+import { AuthContext } from '../../../app/_layout';   
 
 const { width } = Dimensions.get('window');
 
-interface Note {
-  id: number;
+interface Article {
+  code: number;
   title: string;
-  type: string;
-  code: string;
-  createdAt: string;
   content: string;
-  likes: number;
-  authorId: number;
+  time: string;
+  type_article: string;
+  luot_thich: number;
+  user_id: number;
 }
 
 interface DecodedToken {
@@ -23,40 +23,103 @@ interface DecodedToken {
 }
 
 export default function NoteDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { token } = useContext(AuthContext);   // Lấy token từ Context
+  const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
 
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [article, setArticle] = useState<Article | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const note: Note = {
-    id: 16,
-    title: "3/7 - hoc tap",
-    type: "hoctap",
-    code: "16",
-    createdAt: "2026-07-03",
-    content: "Hôm nay tôi đã hoàn thành các bài tập được giao và dành thêm thời gian để ôn lại kiến thức cũ. Việc học đều đặn giúp tôi tự tin hơn và chuẩn bị tốt cho những kỳ kiểm tra sắp tới. Tôi sẽ tiếp tục cố gắng để đạt kết quả tốt hơn.",
-    likes: 1,
-    authorId: 13,
-  };
-
+  // Decode token từ AuthContext
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
     if (token) {
       try {
         const decoded = jwtDecode<DecodedToken>(token);
+        console.log('✅ User ID from Context:', decoded.user_id);
         setCurrentUserId(decoded.user_id);
-      } catch (err) {}
+      } catch (err: any) {
+        console.error('❌ JWT Decode Error:', err.message);
+      }
+    } else {
+      console.warn('⚠️ Token is null in AuthContext');
     }
-  }, []);
+  }, [token]);
 
-  const isOwner = currentUserId === note.authorId;
+  // Fetch bài viết
+  useEffect(() => {
+    if (!code) {
+      setError('Không có mã bài viết');
+      setLoading(false);
+      return;
+    }
+
+    const fetchArticle = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/article/code/${code}`, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) throw new Error('Không tìm thấy bài viết');
+
+        const data: Article = await response.json();
+        console.log('📄 Fetched article user_id:', data.user_id);
+        setArticle(data);
+      } catch (err: any) {
+        setError(err.message || 'Lỗi khi tải bài viết');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticle();
+  }, [code]);
+
+  // Kiểm tra quyền sở hữu
+  const isOwner = currentUserId !== null && 
+                  article?.user_id !== undefined && 
+                  currentUserId === Number(article.user_id);
 
   const handleDelete = () => {
     Alert.alert('Xác nhận', 'Xóa ghi chú này?', [
       { text: 'Hủy' },
-      { text: 'Xóa', style: 'destructive', onPress: () => router.push('/') }
+      { 
+        text: 'Xóa', 
+        style: 'destructive', 
+        onPress: () => router.push('/') 
+      }
     ]);
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text style={{ marginTop: 12, color: '#64748b' }}>Đang tải ghi chú...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error || !article) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ fontSize: 18, color: '#ef4444', textAlign: 'center' }}>
+            {error || 'Không tìm thấy ghi chú'}
+          </Text>
+          <Text style={{ marginTop: 10 }}>Mã: {code}</Text>
+          <TouchableOpacity onPress={() => router.push('/')} style={{ marginTop: 20 }}>
+            <Text style={{ color: '#3b82f6' }}>Quay lại trang chủ</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -70,23 +133,25 @@ export default function NoteDetail() {
 
         <View style={styles.searchContainer}>
           <TextInput style={styles.searchInput} placeholder="Tìm kiếm ghi chú..." />
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addButtonText}>+ Thêm</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Main Content - Responsive */}
+      {/* Main Content */}
       <ScrollView style={styles.mainContent} contentContainerStyle={styles.scrollContent}>
         <View style={styles.noteCard}>
           <View style={styles.titleRow}>
-            <Text style={styles.noteTitle}>{note.title}</Text>
+            <Text style={styles.noteTitle}>{article.title}</Text>
 
+            {/* Nút Sửa & Xóa */}
             {isOwner && (
               <View style={styles.actionGroup}>
-                <TouchableOpacity style={styles.editBtn} onPress={() => alert('Chức năng sửa')}>
+                <TouchableOpacity
+                  style={styles.editBtn}
+                  onPress={() => router.push('/edit_note')}
+                >
                   <Text style={styles.editText}>Sửa</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
                   <Text style={styles.deleteText}>Xóa</Text>
                 </TouchableOpacity>
@@ -97,39 +162,38 @@ export default function NoteDetail() {
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <Text style={styles.label}>Loại</Text>
-              <View style={styles.tag}><Text style={styles.tagText}>{note.type}</Text></View>
+              <View style={styles.tag}><Text style={styles.tagText}>{article.type_article}</Text></View>
             </View>
             <View style={styles.metaItem}>
               <Text style={styles.label}>Mã</Text>
-              <Text style={styles.value}>{note.code}</Text>
+              <Text style={styles.value}>{article.code}</Text>
             </View>
             <View style={styles.metaItem}>
               <Text style={styles.label}>Ngày</Text>
-              <Text style={styles.value}>{note.createdAt}</Text>
+              <Text style={styles.value}>{article.time}</Text>
             </View>
           </View>
 
           <View style={styles.divider} />
           <Text style={styles.sectionTitle}>Nội dung</Text>
-          <Text style={styles.noteContent}>{note.content}</Text>
+          <Text style={styles.noteContent}>{article.content}</Text>
 
-          {/* Thông tin */}
           <View style={styles.infoSection}>
             <Text style={styles.sidebarTitle}>THÔNG TIN GHI CHÚ</Text>
             <View style={styles.infoRow}>
               <Text style={styles.infoIcon}>📅</Text>
               <Text style={styles.infoLabel}>Ngày tạo: </Text>
-              <Text style={styles.infoValue}>{note.createdAt}</Text>
+              <Text style={styles.infoValue}>{article.time}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoIcon}>📁</Text>
               <Text style={styles.infoLabel}>Danh mục: </Text>
-              <View style={styles.tagSmall}><Text style={styles.tagText}>{note.type}</Text></View>
+              <View style={styles.tagSmall}><Text style={styles.tagText}>{article.type_article}</Text></View>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoIcon}>❤️</Text>
               <Text style={styles.infoLabel}>Lượt thích: </Text>
-              <Text style={styles.infoValue}>{note.likes}</Text>
+              <Text style={styles.infoValue}>{article.luot_thich}</Text>
             </View>
           </View>
         </View>
@@ -158,13 +222,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontSize: 15 
   },
-  addButton: { 
-    backgroundColor: '#3b82f6', 
-    paddingHorizontal: 12, 
-    paddingVertical: 8, 
-    borderRadius: 8 
-  },
-  addButtonText: { color: 'white', fontWeight: '600', fontSize: 14 },
 
   mainContent: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },

@@ -134,6 +134,24 @@ def get_articles_by_type(type_article):
     conn.close()
     return articles
 
+def get_article_by_code(code):
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    try:
+        sql = """
+            SELECT code, title, content, time, type_article, 
+                   luot_thich, user_id
+            FROM article 
+            WHERE code = %s
+        """
+        cur.execute(sql, (code,))
+        article = cur.fetchone()
+        print(f"[DB] Tìm code {code} → Kết quả: {article}")  # Debug DB
+        return article
+    finally:
+        cur.close()
+        conn.close()
+
 
 def increase_like(article_code):
     """
