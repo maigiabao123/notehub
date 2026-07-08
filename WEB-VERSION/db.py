@@ -234,3 +234,23 @@ def update_article(code, title, content, type_article):
     conn.commit()
     cur.close()
     conn.close()
+
+def search_articles(keyword):
+    """
+    Tìm bài viết theo từ khóa trong title hoặc content.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    sql = """
+        SELECT code, title, content, time, type_article, luot_thich
+        FROM article
+        WHERE title   LIKE %s
+           OR content LIKE %s
+        ORDER BY time DESC
+    """
+    like_pattern = f"%{keyword}%"
+    cur.execute(sql, (like_pattern, like_pattern))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows

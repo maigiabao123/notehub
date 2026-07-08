@@ -17,7 +17,8 @@ from db import (
     get_user_by_id,
     decrease_like,
     get_article_by_code,
-    update_article
+    update_article,
+    search_articles,
 )
 
 # =========================================================
@@ -83,16 +84,16 @@ def add():
     return render_template("add.html")
 
 
-@app.route("/api/articles/<int:code>", methods=["DELETE"])
-def api_delete_article(code):
-    """Xóa ghi chú bằng session (dùng cho web)."""
-    if "user_id" not in session:
-        return jsonify({"error": "Chua dang nhap"}), 401
-    user_id = session["user_id"]
-    affected = delete_article(code, user_id)
-    if affected == 0:
-        return jsonify({"error": "Khong co quyen xoa"}), 403
-    return jsonify({"message": "Da xoa"}), 200
+# @app.route("/api/articles/<int:code>", methods=["DELETE"])
+# def api_delete_article(code):
+#     """Xóa ghi chú bằng session (dùng cho web)."""
+#     if "user_id" not in session:
+#         return jsonify({"error": "Chua dang nhap"}), 401
+#     user_id = session["user_id"]
+#     affected = delete_article(code, user_id)
+#     if affected == 0:
+#         return jsonify({"error": "Khong co quyen xoa"}), 403
+#     return jsonify({"message": "Da xoa"}), 200
 
 # =========================================================
 # 4. ROUTES WEB: CÁC TRANG DANH MỤC (HTML)
@@ -213,16 +214,25 @@ def api_add_note():
 
 @app.route("/api/mobile/articles/<int:code>", methods=["DELETE"])
 def api_delete_article_mobile(code):
-    """Xóa ghi chú cho mobile bằng user_id (query param)."""
+    print(f"[DELETE] === BẮT ĐẦU ===")
+    print(f"[DELETE] Code: {code}")
+    
     user_id = request.args.get("user_id", type=int)
+    print(f"[DELETE] user_id từ query param: {user_id}")
+
     if not user_id:
+        print("[DELETE] ❌ Thiếu user_id")
         return jsonify({"message": "Thiếu user_id"}), 400
 
     affected = delete_article(code, user_id)
-    if affected == 0:
-        return jsonify({"message": "Không có quyền xóa hoặc không tìm thấy"}), 403
+    print(f"[DELETE] Số dòng bị xóa: {affected}")
 
-    return jsonify({"message": "Đã xóa"}), 200
+    if affected == 0:
+        print("[DELETE] ❌ Không xóa được (không tìm thấy hoặc không phải owner)")
+        return jsonify({"message": "Không có quyền xóa hoặc bài viết không tồn tại"}), 403
+
+    print("[DELETE] ✅ Xóa thành công")
+    return jsonify({"message": "Đã xóa ghi chú thành công"}), 200
 
 # ---------- ROUTE EDIT NOTE CHO MOBILE (đã chuyển vào /api) ----------
 @app.route("/api/notes/<int:code>/edit", methods=["GET", "POST"])
@@ -351,6 +361,19 @@ def api_like_article(code):
 def api_unlike_article(code):
     decrease_like(code)
     return jsonify({"message": "unliked"}), 200
+
+# =========================================================
+# API SEARCH (WEB + MOBILE)
+# =========================================================
+@app.route("/api/search", methods=["GET"])
+def api_search():
+    keyword = request.args.get("q", "").strip()
+    if keyword == "":
+        articles = get_all_articles()
+    else:
+        articles = search_articles(keyword)
+    counts = count_articles_by_type()
+    return jsonify({"articles": articles, "counts": counts}), 200
 
 # =========================================================
 # 8. MAIN

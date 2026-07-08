@@ -103,14 +103,47 @@ export default function NoteDetail() {
     currentUserId === Number(article.user_id);
 
   const handleDelete = () => {
-    Alert.alert('Xác nhận', 'Xóa ghi chú này?', [
-      { text: 'Hủy' },
-      {
-        text: 'Xóa',
-        style: 'destructive',
-        onPress: () => router.push('/'),
-      },
-    ]);
+    console.log("=== handleDelete ĐANG CHẠY ===");
+    console.log("Article code:", article?.code);
+    console.log("CurrentUserId:", currentUserId);
+
+    const isConfirmed = window.confirm("Bạn có chắc muốn xóa ghi chú này?");
+
+    if (isConfirmed) {
+      console.log("✅ Người dùng ĐÃ XÁC NHẬN xóa");
+      deleteNoteAPI();
+    } else {
+      console.log("Người dùng hủy");
+    }
+  };
+
+  const deleteNoteAPI = async () => {
+    if (!article || !currentUserId) {
+      alert("Thiếu thông tin bài viết hoặc user");
+      return;
+    }
+
+    const url = `${API_BASE}/api/mobile/articles/${article.code}?user_id=${currentUserId}`;
+    console.log("📡 Đang gọi API xóa:", url);
+
+    try {
+      const response = await fetch(url, { method: "DELETE" });
+
+      console.log("Status:", response.status);
+
+      const data = await response.json().catch(() => ({}));
+      console.log("Response:", data);
+
+      if (response.ok) {
+        alert("✅ Đã xóa thành công!");
+        router.replace("/");
+      } else {
+        alert("❌ Lỗi: " + (data.message || response.status));
+      }
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert("Không kết nối được server");
+    }
   };
 
   if (loading) {
@@ -170,7 +203,7 @@ export default function NoteDetail() {
                   onPress={() => {
                     console.log('Go edit with code =', code);
                     router.push({
-                      pathname: '/edit_note', // route edit ở root app
+                      pathname: '/edit_note',
                       params: { code },
                     });
                   }}
@@ -178,7 +211,13 @@ export default function NoteDetail() {
                   <Text style={styles.editText}>Sửa</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={() => {
+                    console.log("🔴 NÚT XÓA ĐÃ ĐƯỢC NHẤN!");   // ← Thêm dòng này
+                    handleDelete();
+                  }}
+                >
                   <Text style={styles.deleteText}>Xóa</Text>
                 </TouchableOpacity>
               </View>
