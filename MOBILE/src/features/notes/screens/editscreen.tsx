@@ -5,7 +5,6 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
   StyleSheet,
   KeyboardAvoidingView,
@@ -17,10 +16,11 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height } = Dimensions.get('window');
 
-// ✅ BASE URL giống file [code].tsx
+
 const API_BASE =
   Platform.OS === 'android'
     ? 'http://10.0.2.2:5000'

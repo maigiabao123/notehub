@@ -1,4 +1,3 @@
-// src/features/notes/screens/homescreen.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -7,8 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
-  Pressable,
+  Pressable,    
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { getHome, Article } from '../../../services/noteService';
 import NotesListView from '../components/notelistView/notelistView';
@@ -46,7 +46,6 @@ const HomeScreen: React.FC = () => {
         const data = await getHome();
         console.log('articles sau khi getHome:', data.articles);
         setArticles(data.articles || []);
-        // LẤY counts TỪ API /api/home
         setCounts(data.counts || null);
       } catch (e) {
         console.log('LOI /api/home:', e);
@@ -67,129 +66,140 @@ const HomeScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.root}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.menuBtn}>
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-        </TouchableOpacity>
-        <Text style={styles.logo}>NoteHub</Text>
-        <TouchableOpacity
-          style={styles.btnPrimary}
-          onPress={() => router.push('/add_note')}
-        >
-          <Text style={styles.btnPrimaryText}>+ Thêm ghi chú</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* SEARCH */}
-      <View style={styles.searchRow}>
-        <TextInput
-          placeholder="Tìm kiếm ghi chú..."
-          value={search}
-          onChangeText={setSearch}
-          style={styles.searchInput}
-        />
-      </View>
-
-      {/* LIST */}
-      <NotesListView
-        notes={filtered}
-        loading={loading}
-        onPressItem={(note) =>
-          router.push({
-            pathname: '/specific_note',
-            params: {
-              code: note.code.toString(),
-            },
-          })
-        }
-      />
-
-      {/* SIDEBAR */}
-      <Modal
-        visible={sidebarOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSidebarOpen(false)}
-      >
-        <Pressable style={styles.overlay} onPress={() => setSidebarOpen(false)} />
-        <View style={styles.sidebar}>
-          <View style={styles.sidebarHeader}>
-            <Text style={styles.logo}>NoteHub</Text>
-            <TouchableOpacity onPress={() => setSidebarOpen(false)}>
-              <Text style={{ fontSize: 18 }}>×</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.menuSection}>
-            <TouchableOpacity onPress={() => goTo('/')}>
-              <Text style={[styles.menuItem, styles.menuItemActive]}>Trang chủ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => goTo('/my_notes')}>
-              <Text style={styles.menuItem}>Ghi chú của tôi</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.sectionTitle}>Danh mục</Text>
-
-          {/* mỗi dòng hiển thị icon + tên + số bài */}
-          <TouchableOpacity onPress={() => goTo('/hoc_tap')}>
-            <View style={styles.categoryRow}>
-              <Text style={styles.categoryItem}>🎓 Học tập</Text>
-              <Text style={styles.categoryCount}>{counts?.hoctap ?? 0}</Text>
-            </View>
+    <SafeAreaView style={styles.safeArea}>     {/* 👈 thay View bằng SafeAreaView */}
+      <View style={styles.root}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => setSidebarOpen(true)}
+            style={styles.menuBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}  // 👈 vùng chạm rộng hơn
+          >
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => goTo('/cong_viec')}>
-            <View style={styles.categoryRow}>
-              <Text style={styles.categoryItem}>💼 Công việc</Text>
-              <Text style={styles.categoryCount}>{counts?.congviec ?? 0}</Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.logo}>NoteHub</Text>
 
-          <TouchableOpacity onPress={() => goTo('/ca_nhan')}>
-            <View style={styles.categoryRow}>
-              <Text style={styles.categoryItem}>👤 Cá nhân</Text>
-              <Text style={styles.categoryCount}>{counts?.canhan ?? 0}</Text>
-            </View>
+          <TouchableOpacity
+            style={styles.btnPrimary}
+            onPress={() => router.push('/add_note')}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}  // 👈
+          >
+            <Text style={styles.btnPrimaryText}>+ Thêm ghi chú</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => goTo('/khac')}>
-            <View style={styles.categoryRow}>
-              <Text style={styles.categoryItem}>⋯   Khác</Text>
-              <Text style={styles.categoryCount}>{counts?.khac ?? 0}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.authButtons}>
-            <TouchableOpacity
-              style={styles.btnOutline}
-              onPress={() => goTo('/profile')}
-            >
-              <Text style={styles.btnOutlineText}>Tài khoản</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.btnOutline}
-              onPress={() => goTo('/login')}
-            >
-              <Text style={styles.btnOutlineText}>Đăng nhập</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </Modal>
-    </View>
+
+        {/* SEARCH */}
+        <View style={styles.searchRow}>
+          <TextInput
+            placeholder="Tìm kiếm ghi chú..."
+            value={search}
+            onChangeText={setSearch}
+            style={styles.searchInput}
+          />
+        </View>
+
+
+        {/* LIST */}
+        <NotesListView
+          notes={filtered}
+          loading={loading}
+          onPressItem={(note) =>
+            router.push({
+              pathname: '/specific_note',
+              params: { code: note.code.toString() },
+            })
+          }
+        />
+
+        {/* SIDEBAR */}
+        <Modal
+          visible={sidebarOpen}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setSidebarOpen(false)}
+        >
+          <Pressable style={styles.overlay} onPress={() => setSidebarOpen(false)} />
+          <View style={styles.sidebar}>
+            <View style={styles.sidebarHeader}>
+              <Text style={styles.logo}>NoteHub</Text>
+              <TouchableOpacity onPress={() => setSidebarOpen(false)}>
+                <Text style={{ fontSize: 18 }}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.menuSection}>
+              <TouchableOpacity onPress={() => goTo('/')}>
+                <Text style={[styles.menuItem, styles.menuItemActive]}>Trang chủ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => goTo('/my_notes')}>
+                <Text style={styles.menuItem}>Ghi chú của tôi</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.sectionTitle}>Danh mục</Text>
+
+            <TouchableOpacity onPress={() => goTo('/hoc_tap')}>
+              <View style={styles.categoryRow}>
+                <Text style={styles.categoryItem}>🎓 Học tập</Text>
+                <Text style={styles.categoryCount}>{counts?.hoctap ?? 0}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => goTo('/cong_viec')}>
+              <View style={styles.categoryRow}>
+                <Text style={styles.categoryItem}>💼 Công việc</Text>
+                <Text style={styles.categoryCount}>{counts?.congviec ?? 0}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => goTo('/ca_nhan')}>
+              <View style={styles.categoryRow}>
+                <Text style={styles.categoryItem}>👤 Cá nhân</Text>
+                <Text style={styles.categoryCount}>{counts?.canhan ?? 0}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => goTo('/khac')}>
+              <View style={styles.categoryRow}>
+                <Text style={styles.categoryItem}>⋯   Khác</Text>
+                <Text style={styles.categoryCount}>{counts?.khac ?? 0}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.authButtons}>
+              <TouchableOpacity
+                style={styles.btnOutline}
+                onPress={() => goTo('/profile')}
+              >
+                <Text style={styles.btnOutlineText}>Tài khoản</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.btnOutline}
+                onPress={() => goTo('/login')}
+              >
+                <Text style={styles.btnOutlineText}>Đăng nhập</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#eef2f7',
+  },
   root: {
     flex: 1,
     backgroundColor: '#eef2f7',
     paddingHorizontal: 12,
-    paddingTop: 16,
+    paddingTop: 8,       // 👈 giảm bớt, SafeAreaView lo phần status bar
   },
   header: {
     flexDirection: 'row',
@@ -198,9 +208,9 @@ const styles = StyleSheet.create({
   },
   menuBtn: {
     width: 28,
+    height: 18,
     justifyContent: 'space-between',
     marginRight: 8,
-    height: 18,
   },
   menuLine: {
     height: 2,
@@ -235,9 +245,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d0d7e2',
     fontSize: 14,
-  },
-  listWrapper: {
-    flex: 1,
   },
   overlay: {
     flex: 1,

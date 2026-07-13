@@ -3,14 +3,13 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Dimensions,
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useContext } from 'react';
 import { StatusBar } from 'expo-status-bar';
@@ -22,7 +21,7 @@ const { width } = Dimensions.get('window');
 // ✅ BASE URL chung cho web + android
 const API_BASE =
   Platform.OS === 'android'
-    ? 'http://10.0.2.2:5000'   // Android
+    ? 'http://10.0.2.2:5000' // Android
     : 'http://localhost:5000'; // Web
 
 interface Article {
@@ -103,64 +102,64 @@ export default function NoteDetail() {
     currentUserId === Number(article.user_id);
 
   const handleDelete = () => {
-    console.log("=== handleDelete ĐANG CHẠY ===");
-    console.log("Article code:", article?.code);
-    console.log("CurrentUserId:", currentUserId);
+    console.log('=== handleDelete ĐANG CHẠY ===');
+    console.log('Article code:', article?.code);
+    console.log('CurrentUserId:', currentUserId);
 
-    const isConfirmed = window.confirm("Bạn có chắc muốn xóa ghi chú này?");
+    // window.confirm chỉ chạy trên web
+    const isConfirmed = window.confirm('Bạn có chắc muốn xóa ghi chú này?');
 
     if (isConfirmed) {
-      console.log("✅ Người dùng ĐÃ XÁC NHẬN xóa");
+      console.log('✅ Người dùng ĐÃ XÁC NHẬN xóa');
       deleteNoteAPI();
     } else {
-      console.log("Người dùng hủy");
+      console.log('Người dùng hủy');
     }
   };
 
   const deleteNoteAPI = async () => {
     if (!article || !currentUserId) {
-      alert("Thiếu thông tin bài viết hoặc user");
+      alert('Thiếu thông tin bài viết hoặc user');
       return;
     }
 
     const url = `${API_BASE}/api/mobile/articles/${article.code}?user_id=${currentUserId}`;
-    console.log("📡 Đang gọi API xóa:", url);
+    console.log('📡 Đang gọi API xóa:', url);
 
     try {
-      const response = await fetch(url, { method: "DELETE" });
-
-      console.log("Status:", response.status);
+      const response = await fetch(url, { method: 'DELETE' });
+      console.log('Status:', response.status);
 
       const data = await response.json().catch(() => ({}));
-      console.log("Response:", data);
+      console.log('Response:', data);
 
       if (response.ok) {
-        alert("✅ Đã xóa thành công!");
-        router.replace("/");
+        alert('✅ Đã xóa thành công!');
+        router.replace('/');
       } else {
-        alert("❌ Lỗi: " + (data.message || response.status));
+        alert('❌ Lỗi: ' + (data.message || response.status));
       }
     } catch (error) {
-      console.error("Lỗi:", error);
-      alert("Không kết nối được server");
+      console.error('Lỗi:', error);
+      alert('Không kết nối được server');
     }
   };
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#3b82f6" />
           <Text style={{ marginTop: 12, color: '#64748b' }}>Đang tải ghi chú...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error || !article) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Text style={{ fontSize: 18, color: '#ef4444', textAlign: 'center' }}>
@@ -171,15 +170,15 @@ export default function NoteDetail() {
             <Text style={{ color: '#3b82f6' }}>Quay lại trang chủ</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
-      {/* Header */}
+      {/* Header – giữ nguyên size & màu NoteHub */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.push('/')}>
           <Text style={styles.logo}>NoteHub</Text>
@@ -211,7 +210,7 @@ export default function NoteDetail() {
                 <TouchableOpacity
                   style={styles.deleteBtn}
                   onPress={() => {
-                    console.log("🔴 NÚT XÓA ĐÃ ĐƯỢC NHẤN!");   // ← Thêm dòng này
+                    console.log('🔴 NÚT XÓA ĐÃ ĐƯỢC NHẤN!');
                     handleDelete();
                   }}
                 >
@@ -221,7 +220,7 @@ export default function NoteDetail() {
             )}
           </View>
 
-          {/* phần dưới giữ nguyên như cũ */}
+          {/* Meta info */}
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <Text style={styles.label}>Loại</Text>
@@ -229,10 +228,12 @@ export default function NoteDetail() {
                 <Text style={styles.tagText}>{article.type_article}</Text>
               </View>
             </View>
+
             <View style={styles.metaItem}>
               <Text style={styles.label}>Mã</Text>
               <Text style={styles.value}>{article.code}</Text>
             </View>
+
             <View style={styles.metaItem}>
               <Text style={styles.label}>Ngày</Text>
               <Text style={styles.value}>{article.time}</Text>
@@ -240,6 +241,7 @@ export default function NoteDetail() {
           </View>
 
           <View style={styles.divider} />
+
           <Text style={styles.sectionTitle}>Nội dung</Text>
           <Text style={styles.noteContent}>{article.content}</Text>
 
@@ -268,13 +270,14 @@ export default function NoteDetail() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // styles giữ nguyên như file bạn gửi
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -284,6 +287,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e5e7eb',
   },
   logo: { fontSize: 22, fontWeight: 'bold', color: '#3b82f6' },
+
   searchContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 12 },
   searchInput: {
     flex: 1,
@@ -293,8 +297,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontSize: 15,
   },
+
   mainContent: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
+
   noteCard: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -304,6 +310,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
+
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -317,6 +324,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   actionGroup: { flexDirection: 'row', gap: 8 },
+
   editBtn: {
     backgroundColor: '#3b82f6',
     paddingHorizontal: 14,
@@ -324,6 +332,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   editText: { color: 'white', fontWeight: '600', fontSize: 14 },
+
   deleteBtn: {
     backgroundColor: '#ef4444',
     paddingHorizontal: 14,
@@ -331,6 +340,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   deleteText: { color: 'white', fontWeight: '600', fontSize: 14 },
+
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -340,6 +350,7 @@ const styles = StyleSheet.create({
   metaItem: { marginBottom: 8 },
   label: { color: '#64748b', fontSize: 14 },
   value: { fontSize: 16, fontWeight: '500' },
+
   tag: {
     backgroundColor: '#e0f2fe',
     paddingHorizontal: 12,
@@ -348,13 +359,17 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   tagText: { color: '#0369a1', fontSize: 14 },
+
   divider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 20 },
+
   sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
+
   noteContent: {
     fontSize: 16,
     lineHeight: 26,
     color: '#334155',
   },
+
   infoSection: {
     marginTop: 24,
     paddingTop: 20,
@@ -362,10 +377,12 @@ const styles = StyleSheet.create({
     borderTopColor: '#e5e7eb',
   },
   sidebarTitle: { fontSize: 17, fontWeight: 'bold', marginBottom: 16 },
+
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   infoIcon: { fontSize: 20 },
   infoLabel: { fontSize: 14, color: '#64748b' },
   infoValue: { fontSize: 16, fontWeight: '500' },
+
   tagSmall: {
     backgroundColor: '#e0f2fe',
     paddingHorizontal: 10,

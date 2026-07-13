@@ -14,8 +14,12 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { AuthContext } from "../../../app/_layout";
-
-const BASE_URL = "http://127.0.0.1:5000";
+import { Platform } from 'react-native';
+// ✅ BASE URL chung cho web + android
+const BASE_URL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:5000'   // Android
+    : 'http://localhost:5000'; // Web
 
 type User = {
   user_id: number;

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   StatusBar,
   Modal,
@@ -15,9 +14,13 @@ import {
 import axios from "axios";
 import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_URL = "http://127.0.0.1:5000";
-
+import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+// ✅ BASE URL chung cho web + android
+const API_URL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:5000'   // Android
+    : 'http://localhost:5000'; // Web 
 export interface Note {
   id: number;
   title: string;
@@ -28,14 +31,14 @@ export interface Note {
 }
 
 type AppPath =
-  | '/' 
-  | '/add_note' 
-  | '/my_notes' 
-  | '/hoc_tap' 
-  | '/cong_viec' 
-  | '/ca_nhan' 
-  | '/khac' 
-  | '/profile' 
+  | '/'
+  | '/add_note'
+  | '/my_notes'
+  | '/hoc_tap'
+  | '/cong_viec'
+  | '/ca_nhan'
+  | '/khac'
+  | '/profile'
   | '/login';
 
 const getToken = async (): Promise<string | null> => {
@@ -234,8 +237,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     borderRadius: 2,
   },
-  topTitle: { 
-    fontSize: 20, 
+  topTitle: {
+    fontSize: 20,
     fontWeight: "700",
     flex: 1,
   },

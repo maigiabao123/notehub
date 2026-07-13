@@ -4,14 +4,13 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   RefreshControl,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 interface Note {
   code: string | number;
   title: string;
@@ -20,7 +19,7 @@ interface Note {
   luot_thich: number;
   type_article: string;
 }
-
+import { Platform } from 'react-native';
 const Khacscreen: React.FC = () => {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -28,7 +27,11 @@ const Khacscreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   // ================== THAY ĐỔI ĐỊA CHỈ NÀY ==================
-  const API_URL = 'http://127.0.0.1:5000';
+  // ✅ BASE URL chung cho web + android
+  const API_URL =
+    Platform.OS === 'android'
+      ? 'http://10.0.2.2:5000'   // Android
+      : 'http://localhost:5000'; // Web
 
   const fetchKhacNotes = async () => {
     try {
@@ -81,7 +84,7 @@ const Khacscreen: React.FC = () => {
         <TouchableOpacity onPress={() => router.push("/")}>
           <Text style={styles.brand}>NoteHub</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push('/add_note')}
         >

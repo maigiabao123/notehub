@@ -1,7 +1,12 @@
 import axios from 'axios';
 
 
-const BASE_URL = 'http://127.0.0.1:5000';
+import { Platform } from 'react-native';
+
+const BASE_URL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:5000'  // Android emulator gọi về máy thật
+    : 'http://localhost:5000'; // Web / iOS dev
 
 const api = axios.create({
   baseURL: BASE_URL,

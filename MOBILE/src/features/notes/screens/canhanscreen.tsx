@@ -4,14 +4,14 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   RefreshControl,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-
+import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 interface Note {
   code: string | number;
   title: string;
@@ -28,7 +28,11 @@ const CanhanScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   // ================== THAY ĐỔI ĐỊA CHỈ NÀY ==================
-  const API_URL = 'http://127.0.0.1:5000';
+  // ✅ BASE URL chung cho web + android
+  const API_URL =
+    Platform.OS === 'android'
+      ? 'http://10.0.2.2:5000'   // Android
+      : 'http://localhost:5000'; // Web
 
   const fetchCanhanNotes = async () => {
     try {
