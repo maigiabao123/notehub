@@ -84,16 +84,6 @@ def add():
     return render_template("add.html")
 
 
-# @app.route("/api/articles/<int:code>", methods=["DELETE"])
-# def api_delete_article(code):
-#     """Xóa ghi chú bằng session (dùng cho web)."""
-#     if "user_id" not in session:
-#         return jsonify({"error": "Chua dang nhap"}), 401
-#     user_id = session["user_id"]
-#     affected = delete_article(code, user_id)
-#     if affected == 0:
-#         return jsonify({"error": "Khong co quyen xoa"}), 403
-#     return jsonify({"message": "Da xoa"}), 200
 
 # =========================================================
 # 4. ROUTES WEB: CÁC TRANG DANH MỤC (HTML)
@@ -177,8 +167,6 @@ def api_my_note_mobile():
 
 @app.route("/api/article/code/<int:code>", methods=["GET"])
 def get_article_by_code_api(code):
-    """Lấy chi tiết bài viết theo code"""
-    print(f"[DEBUG] Đang tìm bài viết với code = {code}")  # Log console
 
     try:
         article = get_article_by_code(code)

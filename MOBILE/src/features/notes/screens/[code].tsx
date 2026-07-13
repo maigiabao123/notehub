@@ -184,9 +184,6 @@ export default function NoteDetail() {
         <TouchableOpacity onPress={() => router.push('/')}>
           <Text style={styles.logo}>NoteHub</Text>
         </TouchableOpacity>
-        <View style={styles.searchContainer}>
-          <TextInput style={styles.searchInput} placeholder="Tìm kiếm ghi chú..." />
-        </View>
       </View>
 
       {/* Main Content */}

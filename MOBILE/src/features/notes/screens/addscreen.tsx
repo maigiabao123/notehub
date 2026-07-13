@@ -48,7 +48,6 @@ const AddScreen: React.FC = () => {
         return;
       }
 
-      // map label -> type_article để khớp backend
       let type_article = 'khac';
       switch (selectedType.label) {
         case 'Học tập':
