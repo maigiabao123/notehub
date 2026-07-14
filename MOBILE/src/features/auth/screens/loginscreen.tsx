@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +15,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { AuthContext } from "../../../app/_layout";
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 const BASE_URL =
   Platform.OS === "web" ? "http://localhost:5000" : "http://10.0.2.2:5000";
 

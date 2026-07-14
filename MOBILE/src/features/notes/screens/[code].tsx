@@ -53,14 +53,11 @@ export default function NoteDetail() {
     if (token) {
       try {
         const decoded = jwtDecode<DecodedToken>(token);
-        console.log('✅ User ID from Context:', decoded.user_id);
         setCurrentUserId(decoded.user_id);
       } catch (err: any) {
         console.error('❌ JWT Decode Error:', err.message);
       }
-    } else {
-      console.warn('⚠️ Token is null in AuthContext');
-    }
+    } 
   }, [token]);
 
   // Fetch bài viết
@@ -74,8 +71,6 @@ export default function NoteDetail() {
     const fetchArticle = async () => {
       try {
         const url = `${API_BASE}/api/article/code/${code}`;
-        console.log('FETCH DETAIL URL =', url);
-
         const response = await fetch(url, {
           headers: { 'Content-Type': 'application/json' },
         });
@@ -83,7 +78,6 @@ export default function NoteDetail() {
         if (!response.ok) throw new Error('Không tìm thấy bài viết');
 
         const data: Article = await response.json();
-        console.log('📄 Fetched article user_id:', data.user_id);
         setArticle(data);
       } catch (err: any) {
         setError(err.message || 'Lỗi khi tải bài viết');
@@ -102,18 +96,11 @@ export default function NoteDetail() {
     currentUserId === Number(article.user_id);
 
   const handleDelete = () => {
-    console.log('=== handleDelete ĐANG CHẠY ===');
-    console.log('Article code:', article?.code);
-    console.log('CurrentUserId:', currentUserId);
-
-    // window.confirm chỉ chạy trên web
     const isConfirmed = window.confirm('Bạn có chắc muốn xóa ghi chú này?');
 
     if (isConfirmed) {
-      console.log('✅ Người dùng ĐÃ XÁC NHẬN xóa');
       deleteNoteAPI();
     } else {
-      console.log('Người dùng hủy');
     }
   };
 
@@ -124,15 +111,12 @@ export default function NoteDetail() {
     }
 
     const url = `${API_BASE}/api/mobile/articles/${article.code}?user_id=${currentUserId}`;
-    console.log('📡 Đang gọi API xóa:', url);
+
 
     try {
       const response = await fetch(url, { method: 'DELETE' });
-      console.log('Status:', response.status);
 
       const data = await response.json().catch(() => ({}));
-      console.log('Response:', data);
-
       if (response.ok) {
         alert('✅ Đã xóa thành công!');
         router.replace('/');
@@ -197,7 +181,6 @@ export default function NoteDetail() {
                 <TouchableOpacity
                   style={styles.editBtn}
                   onPress={() => {
-                    console.log('Go edit with code =', code);
                     router.push({
                       pathname: '/edit_note',
                       params: { code },
@@ -210,7 +193,6 @@ export default function NoteDetail() {
                 <TouchableOpacity
                   style={styles.deleteBtn}
                   onPress={() => {
-                    console.log('🔴 NÚT XÓA ĐÃ ĐƯỢC NHẤN!');
                     handleDelete();
                   }}
                 >
