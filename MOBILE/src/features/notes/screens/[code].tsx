@@ -18,7 +18,7 @@ import { AuthContext } from '../../../app/_layout';
 
 const { width } = Dimensions.get('window');
 
-// ✅ BASE URL chung cho web + android
+
 const API_BASE =
   Platform.OS === 'android'
     ? 'http://10.0.2.2:5000' // Android
